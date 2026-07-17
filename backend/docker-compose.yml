@@ -3,12 +3,12 @@ services:
   postgres:
     image: postgres:17
 
-    container_name: software-en-task-flow-db
+    container_name: software-en-taskflow-db
 
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: taskflow
+      POSTGRES_USER: dbadmin
+      POSTGRES_PASSWORD: dbadmin
+      POSTGRES_DB: software-en-taskflow
 
     ports:
       - "5432:5432"
