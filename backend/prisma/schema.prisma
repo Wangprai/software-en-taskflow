@@ -12,11 +12,214 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
+  id String @id @default(uuid())
+
+  email     String  @unique
   password  String
   name      String
+  avatarUrl String?
+
+  ownedWorkspaces Workspace[] @relation("WorkspaceOwner")
+
+  ownedProjects Project[] @relation("ProjectOwner")
+
+  workspaceMemberships WorkspaceMember[]
+
+  assignedTasks Task[] @relation("AssignedTasks")
+
+  createdTasks Task[] @relation("CreatedTasks")
+
+  comments Comment[]
+
+  activities Activity[]
+
+  notifications Notification[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Workspace {
+  id String @id @default(uuid())
+
+  slug String @unique
+
+  name        String
+  description String?
+
+  ownerId String
+  owner   User   @relation("WorkspaceOwner", fields: [ownerId], references: [id])
+
+  projects Project[]
+  members  WorkspaceMember[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerId])
+}
+
+model Project {
+  id          String  @id @default(uuid())
+  name        String
+  description String?
+
+  ownerId String
+  owner   User   @relation("ProjectOwner", fields: [ownerId], references: [id])
+
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+
+  tasks Task[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([workspaceId])
+  @@index([ownerId])
+}
+
+model Task {
+  id String @id @default(uuid())
+
+  title       String
+  description String?
+
+  status   TaskStatus   @default(TODO)
+  priority TaskPriority @default(MEDIUM)
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id])
+
+  assigneeId String?
+  assignee   User?   @relation("AssignedTasks", fields: [assigneeId], references: [id])
+
+  createdById String
+  createdBy   User   @relation("CreatedTasks", fields: [createdById], references: [id])
+
+  dueDate DateTime?
+
+  comments   Comment[]
+  activities Activity[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([assigneeId])
+}
+
+model Notification {
+  id String @id @default(uuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  type NotificationType
+
+  message String
+
+  payload Json?
+
+  isRead Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+enum TaskStatus {
+  TODO
+
+  IN_PROGRESS
+
+  REVIEW
+
+  DONE
+}
+
+model WorkspaceMember {
+  id String @id @default(uuid())
+
+  workspaceId String
+
+  userId String
+
+  role MemberRole
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([workspaceId, userId])
+  @@index([workspaceId])
+  @@index([userId])
+}
+
+model Comment {
+  id String @id @default(uuid())
+
+  content String
+
+  taskId String
+
+  userId String
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  user User @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([taskId])
+}
+
+model Activity {
+  id String @id @default(uuid())
+
+  action ActivityType
+
+  taskId String
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([taskId])
+}
+
+enum TaskPriority {
+  LOW
+
+  MEDIUM
+
+  HIGH
+
+  URGENT
+}
+
+enum MemberRole {
+  ADMIN
+
+  MEMBER
+}
+
+enum ActivityType {
+  TASK_CREATED
+  TASK_UPDATED
+  TASK_ASSIGNED
+  STATUS_CHANGED
+  COMMENT_CREATED
+}
+
+enum NotificationType {
+  TASK_ASSIGNED
+  COMMENT_ADDED
+  STATUS_CHANGED
 }
