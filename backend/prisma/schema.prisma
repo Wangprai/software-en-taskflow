@@ -19,6 +19,8 @@ model User {
   name      String
   avatarUrl String?
 
+  refreshToken String?
+
   ownedWorkspaces Workspace[] @relation("WorkspaceOwner")
 
   ownedProjects Project[] @relation("ProjectOwner")

@@ -21,4 +21,14 @@ export class UserRepository implements UserInterface {
   async findById(id: string): Promise<User | null> {
     return this.prisma.user.findUnique({ where: { id } });
   }
+
+  // Update new refresh token
+  async updateRefreshToken(userId: string, refreshToken: string | null): Promise<User> { 
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        refreshToken,
+      }
+    });
+  }
 }

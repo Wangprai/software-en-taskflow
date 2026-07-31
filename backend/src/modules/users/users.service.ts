@@ -41,4 +41,12 @@ export class UsersService {
   async comparePassword(plain: string, hashed: string) {
     return this.passwordHasher.compare(plain, hashed);
   }
+
+  // Update new refresh token
+  async updateRefreshToken(userId: string, refreshToken: string | null) {
+    return this.userRepository.updateRefreshToken(
+      userId,
+      refreshToken,
+    )
+  }
 }

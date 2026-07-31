@@ -1,20 +1,27 @@
 import {
   Controller,
+  Get,
   Post,
   Body,
   Request,
   HttpCode,
   HttpStatus,
   UseGuards,
+  NotFoundException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from '../users/dto/register.dto';
+import { UsersService } from '../users/users.service';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly usersService: UsersService,
+  ) {}
 
   // Endpoint for user registration
   @Post('register')
@@ -30,6 +37,21 @@ export class AuthController {
     return this.authService.login(loginDto);
   }
 
+  // Endpoint to get the profile of the authenticated user
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @Get('me')
+  async me(@Request() req: any) {
+    const user = await this.usersService.findUserById(req.user.sub);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const { password, refreshToken, ...userWithoutPassword } = user;
+    return userWithoutPassword;
+  }
+  
   // Endpoint for user logout
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -37,5 +59,12 @@ export class AuthController {
   async logout(@Request() req: any) {
     await this.authService.logout(req.user.sub);
     return { message: 'User logged out successfully' };
+  }
+
+  // Endpoint for refresh token
+  @HttpCode(HttpStatus.OK)
+  @Post('refresh')
+  refresh(@Body() dto: RefreshTokenDto) {
+    return this.authService.refresh(dto.refreshToken);
   }
 }
