@@ -3,7 +3,6 @@ import {
   Get,
   Post,
   Body,
-  Request,
   HttpCode,
   HttpStatus,
   UseGuards,
@@ -15,6 +14,8 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from '../users/dto/register.dto';
 import { UsersService } from '../users/users.service';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+import type { AuthUser } from './interfaces/auth-user.interface';
+import { CurrentUser } from '../../decorators/current-user.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -39,32 +40,31 @@ export class AuthController {
 
   // Endpoint to get the profile of the authenticated user
   @UseGuards(JwtAuthGuard)
-  @HttpCode(HttpStatus.OK)
   @Get('me')
-  async me(@Request() req: any) {
-    const user = await this.usersService.findUserById(req.user.sub);
+  async me(@CurrentUser() user: AuthUser) {
+    const foundUser = await this.usersService.findUserById(user.id);
 
-    if (!user) {
+    if (!foundUser) {
       throw new NotFoundException('User not found');
     }
 
-    const { password, refreshToken, ...userWithoutPassword } = user;
+    const { password, refreshToken, ...userWithoutPassword } = foundUser;
     return userWithoutPassword;
   }
   
   // Endpoint for user logout
   @UseGuards(JwtAuthGuard)
-  @HttpCode(HttpStatus.OK)
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Post('logout')
-  async logout(@Request() req: any) {
-    await this.authService.logout(req.user.sub);
+  async logout(@CurrentUser() user: AuthUser) {
+    await this.authService.logout(user.id);
     return { message: 'User logged out successfully' };
   }
 
   // Endpoint for refresh token
   @HttpCode(HttpStatus.OK)
   @Post('refresh')
-  refresh(@Body() dto: RefreshTokenDto) {
+  async refresh(@Body() dto: RefreshTokenDto) {
     return this.authService.refresh(dto.refreshToken);
   }
 }
