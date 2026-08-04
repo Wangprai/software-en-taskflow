@@ -57,6 +57,6 @@ export class WorkspacesController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':id')
   async deleteWorkspace(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: AuthUser) {
-    return this.workspacesService.deleteWorkspace(id, user.id);
+    await this.workspacesService.deleteWorkspace(id, user.id);
   }
 }

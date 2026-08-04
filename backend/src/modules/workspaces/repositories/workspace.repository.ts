@@ -55,7 +55,7 @@ export class WorkspaceRepository implements WorkspaceInterface {
   async findBySlug(
     slug: string,
   ): Promise<WorkspaceDetail | null> {
-    return this.prisma.workspace.findFirst({
+    return this.prisma.workspace.findUnique({
       where: {
         slug,
       },
