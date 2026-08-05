@@ -40,7 +40,7 @@ export class WorkspaceMembersController {
     return this.workspaceMembersService.getAllMembers(slug, user.id);
   }
 
-  // Endpoint to delete a member in workspace by ID
+  // Endpoint to delete a member in workspace 
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':memberId')
   async deleteMember(

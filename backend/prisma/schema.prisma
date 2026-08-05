@@ -79,6 +79,8 @@ model Project {
 
   @@index([workspaceId])
   @@index([ownerId])
+
+  @@unique([workspaceId, name])
 }
 
 model Task {
