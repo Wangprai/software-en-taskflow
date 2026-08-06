@@ -23,12 +23,15 @@ export class UserRepository implements UserInterface {
   }
 
   // Update new refresh token
-  async updateRefreshToken(userId: string, refreshToken: string | null): Promise<User> { 
+  async updateRefreshToken(
+    userId: string,
+    refreshToken: string | null,
+  ): Promise<User> {
     return this.prisma.user.update({
       where: { id: userId },
       data: {
         refreshToken,
-      }
+      },
     });
   }
 }

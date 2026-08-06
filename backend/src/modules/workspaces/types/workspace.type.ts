@@ -65,16 +65,15 @@ export type WorkspaceWithMembers = Prisma.WorkspaceGetPayload<{
   };
 }>;
 
-export type WorkspacePayload =
-  Prisma.WorkspaceGetPayload<{
-    include: {
-      owner: {
-        select: {
-          id: true;
-          name: true;
-          email: true;
-        };
+export type WorkspacePayload = Prisma.WorkspaceGetPayload<{
+  include: {
+    owner: {
+      select: {
+        id: true;
+        name: true;
+        email: true;
       };
-      members: true;
     };
-  }>;
+    members: true;
+  };
+}>;

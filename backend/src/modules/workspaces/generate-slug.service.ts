@@ -16,8 +16,8 @@ export class GenerateSlugService {
     let counter = 1;
 
     while (await this.workspaceRepository.findBySlug(slug)) {
-        counter++;
-        slug =  `${baseSlug}-${counter}`;
+      counter++;
+      slug = `${baseSlug}-${counter}`;
     }
 
     return slug;

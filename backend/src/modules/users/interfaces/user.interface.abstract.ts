@@ -7,7 +7,7 @@ export abstract class UserInterface {
   abstract findByEmail(email: string): Promise<User | null>;
 
   abstract findById(id: string): Promise<User | null>;
-  
+
   abstract updateRefreshToken(
     userId: string,
     refreshToken: string | null,

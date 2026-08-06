@@ -26,7 +26,10 @@ export class WorkspacesController {
   // Endpoint to create a new workspace
   @HttpCode(HttpStatus.CREATED)
   @Post()
-  async createWorkspace(@CurrentUser() user: AuthUser, @Body() dto: CreateWorkspaceDto) {
+  async createWorkspace(
+    @CurrentUser() user: AuthUser,
+    @Body() dto: CreateWorkspaceDto,
+  ) {
     return this.workspacesService.createWorkspace(user.id, dto);
   }
 
@@ -38,7 +41,10 @@ export class WorkspacesController {
 
   // Endpoint to get workspace detail by slug
   @Get(':slug')
-  async getWorkspaceDetail(@Param('slug') slug: string, @CurrentUser() user: AuthUser) {
+  async getWorkspaceDetail(
+    @Param('slug') slug: string,
+    @CurrentUser() user: AuthUser,
+  ) {
     return this.workspacesService.findWorkspaceBySlug(slug, user.id);
   }
 
@@ -56,7 +62,10 @@ export class WorkspacesController {
   // Endpoint to delete a workspace by ID
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':id')
-  async deleteWorkspace(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: AuthUser) {
+  async deleteWorkspace(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: AuthUser,
+  ) {
     await this.workspacesService.deleteWorkspace(id, user.id);
   }
 }
