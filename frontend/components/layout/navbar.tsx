@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Bell, LogOut, Search, Settings, User as UserIcon } from "lucide-react";
+import { Bell, LogOut, Moon, Search, Settings, Sun, User as UserIcon } from "lucide-react";
 import { useState } from "react";
 
 import { UserAvatar } from "@/components/shared/user-avatar";
@@ -16,9 +16,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/features/auth/hooks";
+import { useTheme } from "@/providers/theme-provider";
 
 export function Navbar() {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [query, setQuery] = useState("");
 
   return (
@@ -35,6 +37,9 @@ export function Navbar() {
       </div>
 
       <div className="ml-auto flex items-center gap-1">
+        <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
+          {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
+        </Button>
         <Button variant="ghost" size="icon" asChild aria-label="Notifications">
           <Link href="/notifications" className="relative">
             <Bell className="size-4" />
