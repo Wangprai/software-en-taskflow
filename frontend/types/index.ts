@@ -14,3 +14,13 @@ export interface ApiError {
   message: string;
   status?: number;
 }
+
+export interface Workspace {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  createdAt: string;
+  memberCount: number;
+  projectCount: number;
+}
