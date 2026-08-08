@@ -21,6 +21,10 @@ export function useWorkspaces() {
   return useQuery(workspacesQueryOptions());
 }
 
+export function useWorkspace(slug: string) {
+  return useQuery(workspaceQueryOptions(slug));
+}
+
 export function useCreateWorkspace() {
   const qc = useQueryClient();
   return useMutation({
