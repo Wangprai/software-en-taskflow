@@ -47,9 +47,23 @@ export default function WorkspaceDetailPage() {
       />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard icon={Users} label="Members" value={members?.length ?? 0} hint={`${admins} admins`} />
-        <StatCard icon={FolderKanban} label="Projects" value={projects?.length ?? 0} />
-        <StatCard icon={ListChecks} label="Tasks" value={totalTasks} hint="Across all projects" />
+        <StatCard
+          icon={Users}
+          label="Members"
+          value={members?.length ?? 0}
+          hint={`${admins} admins`}
+        />
+        <StatCard
+          icon={FolderKanban}
+          label="Projects"
+          value={projects?.length ?? 0}
+        />
+        <StatCard
+          icon={ListChecks}
+          label="Tasks"
+          value={totalTasks}
+          hint="Across all projects"
+        />
         <StatCard
           icon={CalendarDays}
           label="Created"
@@ -87,7 +101,7 @@ export default function WorkspaceDetailPage() {
               Members
             </h2>
             <Link
-              href={`/workspaces/${ slug }/members`}
+              href={`/workspaces/${slug}/members`}
               className="text-sm text-primary hover:underline"
             >
               Manage
@@ -98,8 +112,12 @@ export default function WorkspaceDetailPage() {
               <div key={member.id} className="flex items-center gap-3 p-3">
                 <UserAvatar user={member.user} />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{member.user.name}</p>
-                  <p className="truncate text-xs text-muted-foreground">{member.user.email}</p>
+                  <p className="truncate text-sm font-medium">
+                    {member.user.name}
+                  </p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {member.user.email}
+                  </p>
                 </div>
                 <RoleBadge role={member.role} />
               </div>

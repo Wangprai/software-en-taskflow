@@ -36,7 +36,8 @@ export function AuthLayout({
         <div className="surface-grid absolute inset-0 opacity-30" aria-hidden />
         <div className="relative flex h-full flex-col justify-end p-12">
           <blockquote className="max-w-md text-xl font-medium leading-snug">
-            “We replaced three tools with TaskFlow and cut our planning meetings in half.”
+            “We replaced three tools with TaskFlow and cut our planning meetings
+            in half.”
           </blockquote>
           <p className="mt-4 text-sm text-muted-foreground">
             Wangprai Jullapech — Project for practice, Full Stack Developer
