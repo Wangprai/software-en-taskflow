@@ -1,79 +1,23 @@
 import { Prisma } from '@prisma/client';
+import {
+  workspaceDetailInclude,
+  workspaceListItemInclude,
+  workspacePayloadInclude,
+  workspaceWithMembersInclude,
+} from './workspace.include';
 
 export type WorkspaceDetail = Prisma.WorkspaceGetPayload<{
-  include: {
-    owner: {
-      select: {
-        id: true;
-        email: true;
-        name: true;
-      };
-    };
-    members: {
-      include: {
-        user: {
-          select: {
-            id: true;
-            email: true;
-            name: true;
-          };
-        };
-      };
-    };
-    projects: true;
-  };
+  include: typeof workspaceDetailInclude;
 }>;
 
 export type WorkspaceListItem = Prisma.WorkspaceGetPayload<{
-  include: {
-    owner: {
-      select: {
-        id: true;
-        name: true;
-        email: true;
-      };
-    };
-    _count: {
-      select: {
-        members: true;
-        projects: true;
-      };
-    };
-  };
+  include: typeof workspaceListItemInclude;
 }>;
 
 export type WorkspaceWithMembers = Prisma.WorkspaceGetPayload<{
-  include: {
-    owner: {
-      select: {
-        id: true;
-        email: true;
-        name: true;
-      };
-    };
-    members: {
-      include: {
-        user: {
-          select: {
-            id: true;
-            email: true;
-            name: true;
-          };
-        };
-      };
-    };
-  };
+  include: typeof workspaceWithMembersInclude;
 }>;
 
 export type WorkspacePayload = Prisma.WorkspaceGetPayload<{
-  include: {
-    owner: {
-      select: {
-        id: true;
-        name: true;
-        email: true;
-      };
-    };
-    members: true;
-  };
+  include: typeof workspacePayloadInclude;
 }>;

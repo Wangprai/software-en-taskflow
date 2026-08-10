@@ -19,7 +19,7 @@ export abstract class WorkspaceInterface {
   abstract update(
     id: string,
     data: Prisma.WorkspaceUpdateInput,
-  ): Promise<Workspace>;
+  ): Promise<WorkspaceDetail>;
 
-  abstract delete(id: string): Promise<Workspace>;
+  abstract delete(id: string): Promise<WorkspaceDetail>;
 }

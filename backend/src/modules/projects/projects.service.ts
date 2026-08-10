@@ -1,15 +1,14 @@
 import {
   BadRequestException,
-  ForbiddenException,
   Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { ProjectInterface } from './interfaces/project.interface.abstract';
-import { WorkspaceInterface } from '../workspaces/interfaces/workspace.interface.abstract';
-import { WorkspaceMemberInterface } from '../workspace-members/interfaces/workspace-member.interface.abstract';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
+import { WorkspaceAccessService } from '../workspaces/workspace-access.service';
+import { ProjectDetail, ProjectList } from './types/project.type';
 
 @Injectable()
 export class ProjectsService {
@@ -17,11 +16,7 @@ export class ProjectsService {
     @Inject(ProjectInterface)
     private readonly projectRepository: ProjectInterface,
 
-    @Inject(WorkspaceInterface)
-    private readonly workspaceRepository: WorkspaceInterface,
-
-    @Inject(WorkspaceMemberInterface)
-    private readonly workspaceMemberRepository: WorkspaceMemberInterface,
+    private readonly workspaceAccessService: WorkspaceAccessService,
   ) {}
 
   // Create project in workspace
@@ -29,32 +24,23 @@ export class ProjectsService {
     slug: string,
     dto: CreateProjectDto,
     currentUserId: string,
-  ) {
-    const workspace = await this.workspaceRepository.findBySlug(slug);
-
-    if (!workspace) {
-      throw new NotFoundException('Workspace not found');
-    }
-
-    const isOwner = workspace.ownerId === currentUserId;
-
-    const member = await this.workspaceMemberRepository.findByWorkspaceAndUser(
-      workspace.id,
-      currentUserId,
-    );
-
-    if (!isOwner && !member) {
-      throw new ForbiddenException('Access denied');
-    }
+  ): Promise<ProjectDetail> {
+    const { workspace } =
+      await this.workspaceAccessService.validateWorkspaceAccess(
+        slug,
+        currentUserId,
+      );
 
     return this.projectRepository.create({
       name: dto.name,
       description: dto.description,
+
       owner: {
         connect: {
           id: currentUserId,
         },
       },
+
       workspace: {
         connect: {
           id: workspace.id,
@@ -64,75 +50,39 @@ export class ProjectsService {
   }
 
   // get all projects
-  async getProjects(slug: string, currentUserId: string) {
-    const workspace = await this.workspaceRepository.findBySlug(slug);
-
-    if (!workspace) {
-      throw new NotFoundException('Workspace not found');
-    }
-
-    const isOwner = workspace.ownerId === currentUserId;
-
-    const member = await this.workspaceMemberRepository.findByWorkspaceAndUser(
-      workspace.id,
-      currentUserId,
-    );
-
-    if (!isOwner && !member) {
-      throw new ForbiddenException('Access denied');
-    }
+  async getProjects(slug: string, currentUserId: string): Promise<ProjectList> {
+    const { workspace } =
+      await this.workspaceAccessService.validateWorkspaceAccess(
+        slug,
+        currentUserId,
+      );
 
     return this.projectRepository.findAllByWorkspaceId(workspace.id);
   }
 
   // get project detail
   async getProjectById(slug: string, projectId: string, currentUserId: string) {
-    const workspace = await this.workspaceRepository.findBySlug(slug);
-
-    if (!workspace) {
-      throw new NotFoundException('Workspace not found');
-    }
-
-    const isOwner = workspace.ownerId === currentUserId;
-
-    const member = await this.workspaceMemberRepository.findByWorkspaceAndUser(
-      workspace.id,
+    const { project } = await this.validateProjectAccess(
+      slug,
+      projectId,
       currentUserId,
     );
-
-    if (!isOwner && !member) {
-      throw new ForbiddenException('Access denied');
-    }
-
-    const project = await this.projectRepository.findById(projectId);
-
-    if (!project) {
-      throw new NotFoundException('Project not found');
-    }
-
-    if (project.workspaceId !== workspace.id) {
-      throw new BadRequestException('Project does not belong to workspace');
-    }
 
     return project;
   }
 
-  // Update project 
+  // Update project
   async updateProject(
     slug: string,
     projectId: string,
     dto: UpdateProjectDto,
     currentUserId: string,
-  ) {
-    const workspace = await this.workspaceRepository.findBySlug(slug);
-
-    if (!workspace) {
-      throw new NotFoundException('Workspace not found');
-    }
-
-    if (workspace.ownerId !== currentUserId) {
-      throw new ForbiddenException('Only workspace owner can update project');
-    }
+  ): Promise<ProjectDetail> {
+    const { workspace } =
+      await this.workspaceAccessService.validateWorkspaceOwner(
+        slug,
+        currentUserId,
+      );
 
     const project = await this.projectRepository.findById(projectId);
 
@@ -150,17 +100,17 @@ export class ProjectsService {
     });
   }
 
-  // Delete project 
-  async deleteProject(slug: string, projectId: string, currentUserId: string) {
-    const workspace = await this.workspaceRepository.findBySlug(slug);
-
-    if (!workspace) {
-      throw new NotFoundException('Workspace not found');
-    }
-
-    if (workspace.ownerId !== currentUserId) {
-      throw new ForbiddenException('Only workspace owner can delete project');
-    }
+  // Delete project
+  async deleteProject(
+    slug: string,
+    projectId: string,
+    currentUserId: string,
+  ): Promise<ProjectDetail> {
+    const { workspace } =
+      await this.workspaceAccessService.validateWorkspaceOwner(
+        slug,
+        currentUserId,
+      );
 
     const project = await this.projectRepository.findById(projectId);
 
@@ -173,5 +123,33 @@ export class ProjectsService {
     }
 
     return this.projectRepository.delete(projectId);
+  }
+
+  // Helper function for validate project access
+  private async validateProjectAccess(
+    slug: string,
+    projectId: string,
+    currentUserId: string,
+  ) {
+    const { workspace } =
+      await this.workspaceAccessService.validateWorkspaceAccess(
+        slug,
+        currentUserId,
+      );
+
+    const project = await this.projectRepository.findById(projectId);
+
+    if (!project) {
+      throw new NotFoundException('Project not found');
+    }
+
+    if (project.workspaceId !== workspace.id) {
+      throw new BadRequestException('Project does not belong to workspace');
+    }
+
+    return {
+      workspace,
+      project,
+    };
   }
 }

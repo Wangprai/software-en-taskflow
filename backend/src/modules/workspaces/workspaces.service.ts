@@ -9,19 +9,21 @@ import {
 import { WorkspaceInterface } from './interfaces/workspace.interface.abstract';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
-import { Prisma, Workspace } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import {
   WorkspaceDetail,
   WorkspaceListItem,
   WorkspacePayload,
 } from './types/workspace.type';
 import { GenerateSlugService } from './generate-slug.service';
+import { WorkspaceAccessService } from './workspace-access.service';
 
 @Injectable()
 export class WorkspacesService {
   constructor(
     private readonly workspaceRepository: WorkspaceInterface,
     private readonly generateSlugService: GenerateSlugService,
+    private readonly workspaceAccessService: WorkspaceAccessService,
   ) {}
 
   // Create a new workspace and associate it with the user as the owner
@@ -67,19 +69,8 @@ export class WorkspacesService {
     slug: string,
     userId: string,
   ): Promise<WorkspaceDetail> {
-    const workspace = await this.workspaceRepository.findBySlug(slug);
-
-    if (!workspace) {
-      throw new NotFoundException(`Workspace with slug "${slug}" not found`);
-    }
-
-    // Check if the user is the owner or a member of the workspace
-    const hasAccess =
-      workspace.ownerId === userId ||
-      workspace.members.some((m) => m.userId === userId);
-    if (!hasAccess) {
-      throw new ForbiddenException('You do not have access to this workspace');
-    }
+    const { workspace } =
+      await this.workspaceAccessService.validateWorkspaceAccess(slug, userId);
 
     return workspace;
   }
@@ -89,7 +80,7 @@ export class WorkspacesService {
     id: string,
     userId: string,
     dto: UpdateWorkspaceDto,
-  ): Promise<Workspace> {
+  ): Promise<WorkspaceDetail> {
     const workspace = await this.workspaceRepository.findById(id);
 
     if (!workspace) {
@@ -114,7 +105,7 @@ export class WorkspacesService {
   }
 
   // Delete a workspace by ID, ensuring that only the owner can perform this action
-  async deleteWorkspace(id: string, userId: string): Promise<Workspace> {
+  async deleteWorkspace(id: string, userId: string): Promise<WorkspaceDetail> {
     const workspace = await this.workspaceRepository.findById(id);
 
     if (!workspace) {

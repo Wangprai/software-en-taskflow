@@ -1,31 +1,25 @@
 import {
   BadRequestException,
   ConflictException,
-  ForbiddenException,
   Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { WorkspaceMemberInterface } from './interfaces/workspace-member.interface.abstract';
 import { UserInterface } from '../users/interfaces/user.interface.abstract';
-import { WorkspaceInterface } from '../workspaces/interfaces/workspace.interface.abstract';
 import { CreateWorkspaceMemberDto } from './dto/create-workspace-member.dto';
-import {
-  WorkspaceMemberList,
-  WorkspaceMemberWithUser,
-} from './types/workspace-member.type';
+import { WorkspaceAccessService } from '../workspaces/workspace-access.service';
 
 @Injectable()
 export class WorkspaceMembersService {
   constructor(
-    @Inject(WorkspaceInterface)
-    private readonly workspaceRepository: WorkspaceInterface,
-
     @Inject(WorkspaceMemberInterface)
     private readonly workspaceMemberRepository: WorkspaceMemberInterface,
 
     @Inject(UserInterface)
     private readonly userRepository: UserInterface,
+
+    private readonly workspaceAccessService: WorkspaceAccessService,
   ) {}
 
   // Add new member to workspace
@@ -33,16 +27,12 @@ export class WorkspaceMembersService {
     slug: string,
     dto: CreateWorkspaceMemberDto,
     currentUserId: string,
-  ): Promise<WorkspaceMemberWithUser> {
-    const workspace = await this.workspaceRepository.findBySlug(slug);
-
-    if (!workspace) {
-      throw new NotFoundException('Workspace not found');
-    }
-
-    if (workspace.ownerId !== currentUserId) {
-      throw new ForbiddenException('Only workspace owner can manage members');
-    }
+  ) {
+    const { workspace } =
+      await this.workspaceAccessService.validateWorkspaceOwner(
+        slug,
+        currentUserId,
+      );
 
     const user = await this.userRepository.findByEmail(dto.email);
 
@@ -72,47 +62,23 @@ export class WorkspaceMembersService {
   }
 
   // Get all members in workspace
-  async getAllMembers(
-    slug: string,
-    currentUserId: string,
-  ): Promise<WorkspaceMemberList> {
-    const workspace = await this.workspaceRepository.findBySlug(slug);
-
-    if (!workspace) {
-      throw new NotFoundException('Workspace not found');
-    }
-
-    if (workspace.ownerId === currentUserId) {
-      return this.workspaceMemberRepository.findAllByWorkspaceId(workspace.id);
-    }
-
-    const member = await this.workspaceMemberRepository.findByWorkspaceAndUser(
-      workspace.id,
-      currentUserId,
-    );
-
-    if (!member) {
-      throw new ForbiddenException('Access denied');
-    }
+  async getAllMembers(slug: string, currentUserId: string) {
+    const { workspace } =
+      await this.workspaceAccessService.validateWorkspaceAccess(
+        slug,
+        currentUserId,
+      );
 
     return this.workspaceMemberRepository.findAllByWorkspaceId(workspace.id);
   }
 
   // Delete a member in workspace by ID, ensuring that only the owner can perform this action
-  async deleteMember(
-    slug: string,
-    memberId: string,
-    currentUserId: string,
-  ): Promise<WorkspaceMemberWithUser> {
-    const workspace = await this.workspaceRepository.findBySlug(slug);
-
-    if (!workspace) {
-      throw new NotFoundException('Workspace not found');
-    }
-
-    if (workspace.ownerId !== currentUserId) {
-      throw new ForbiddenException('Only workspace owner can manage members');
-    }
+  async deleteMember(slug: string, memberId: string, currentUserId: string) {
+    const { workspace } =
+      await this.workspaceAccessService.validateWorkspaceOwner(
+        slug,
+        currentUserId,
+      );
 
     const member = await this.workspaceMemberRepository.findById(memberId);
 

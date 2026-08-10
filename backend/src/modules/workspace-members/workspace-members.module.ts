@@ -1,14 +1,13 @@
 import { Module } from '@nestjs/common';
-import { PrismaModule } from '../../prisma/prisma.module';
 import { UsersModule } from '../users/users.module';
-import { WorkspacesModule } from '../workspaces/workspaces.module';
 import { WorkspaceMemberInterface } from './interfaces/workspace-member.interface.abstract';
 import { WorkspaceMemberRepository } from './repositories/workspace-member.repository';
 import { WorkspaceMembersController } from './workspace-members.controller';
 import { WorkspaceMembersService } from './workspace-members.service';
+import { WorkspacesModule } from '../workspaces/workspaces.module';
 
 @Module({
-  imports: [PrismaModule, WorkspacesModule, UsersModule],
+  imports: [UsersModule, WorkspacesModule],
   controllers: [WorkspaceMembersController],
   providers: [
     WorkspaceMembersService,

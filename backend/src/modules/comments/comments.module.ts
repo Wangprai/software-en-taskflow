@@ -13,7 +13,6 @@ import { CommentRepository } from './repositories/comment.repository';
   imports: [
     TasksModule,
     WorkspacesModule,
-    WorkspaceMembersModule,
     ProjectsModule,
   ],
   controllers: [CommentsController],

@@ -20,9 +20,7 @@ import { UpdateCommentDto } from './dto/update-comment.dto';
 @Controller('workspaces/:slug/projects/:projectId/tasks/:taskId/comments')
 @UseGuards(JwtAuthGuard)
 export class CommentsController {
-  constructor(
-    private readonly commentsService: CommentsService,
-  ) {}
+  constructor(private readonly commentsService: CommentsService) {}
 
   // Endpoint to create comment
   @HttpCode(HttpStatus.CREATED)
@@ -51,12 +49,7 @@ export class CommentsController {
     @Param('taskId') taskId: string,
     @CurrentUser() user: AuthUser,
   ) {
-    return this.commentsService.getAllComments(
-      slug,
-      projectId,
-      taskId,
-      user.id,
-    );
+    return this.commentsService.getComments(slug, projectId, taskId, user.id);
   }
 
   // Endpoint to get comment detail
@@ -78,6 +71,7 @@ export class CommentsController {
   }
 
   // Endpoint to update comment
+  @HttpCode(HttpStatus.OK)
   @Patch(':commentId')
   async updateComment(
     @Param('slug') slug: string,

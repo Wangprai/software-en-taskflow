@@ -7,11 +7,10 @@ import {
 } from '@nestjs/common';
 import { TaskInterface } from './interfaces/task.interface.abstract';
 import { ProjectInterface } from '../projects/interfaces/project.interface.abstract';
-import { WorkspaceInterface } from '../workspaces/interfaces/workspace.interface.abstract';
 import { UserInterface } from '../users/interfaces/user.interface.abstract';
-import { WorkspaceMemberInterface } from '../workspace-members/interfaces/workspace-member.interface.abstract';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
+import { WorkspaceAccessService } from '../workspaces/workspace-access.service';
 
 @Injectable()
 export class TasksService {
@@ -22,14 +21,10 @@ export class TasksService {
     @Inject(ProjectInterface)
     private readonly projectRepository: ProjectInterface,
 
-    @Inject(WorkspaceInterface)
-    private readonly workspaceRepository: WorkspaceInterface,
-
-    @Inject(WorkspaceMemberInterface)
-    private readonly workspaceMemberRepository: WorkspaceMemberInterface,
-
     @Inject(UserInterface)
     private readonly userRepository: UserInterface,
+
+    private readonly workspaceAccessService: WorkspaceAccessService,
   ) {}
 
   // Create task in project
@@ -39,32 +34,11 @@ export class TasksService {
     dto: CreateTaskDto,
     currentUserId: string,
   ) {
-    const workspace = await this.workspaceRepository.findBySlug(slug);
-
-    if (!workspace) {
-      throw new NotFoundException('Workspace not found');
-    }
-
-    const isOwner = workspace.ownerId === currentUserId;
-
-    const member = await this.workspaceMemberRepository.findByWorkspaceAndUser(
-      workspace.id,
+    const { workspace, project } = await this.validateProjectAccess(
+      slug,
+      projectId,
       currentUserId,
     );
-
-    if (!isOwner && !member) {
-      throw new ForbiddenException('Access denied');
-    }
-
-    const project = await this.projectRepository.findById(projectId);
-
-    if (!project) {
-      throw new NotFoundException('Project not found');
-    }
-
-    if (project.workspaceId !== workspace.id) {
-      throw new BadRequestException('Project does not belong to workspace');
-    }
 
     const lastPosition = await this.taskRepository.findLastPosition(project.id);
 
@@ -77,17 +51,10 @@ export class TasksService {
         throw new NotFoundException('Assignee not found');
       }
 
-      const assigneeMember =
-        await this.workspaceMemberRepository.findByWorkspaceAndUser(
-          workspace.id,
-          assignee.id,
-        );
-
-      const isWorkspaceOwner = workspace.ownerId === assignee.id;
-
-      if (!assigneeMember && !isWorkspaceOwner) {
-        throw new BadRequestException('Assignee is not a workspace member');
-      }
+      await this.workspaceAccessService.validateUserInWorkspace(
+        workspace.id,
+        assignee.id,
+      );
 
       assigneeId = assignee.id;
     }
@@ -97,6 +64,7 @@ export class TasksService {
       description: dto.description,
       priority: dto.priority,
       dueDate: dto.dueDate ? new Date(dto.dueDate) : undefined,
+
       position: lastPosition + 1,
 
       project: {
@@ -123,32 +91,11 @@ export class TasksService {
 
   // Get all task in project
   async getAllTasks(slug: string, projectId: string, currentUserId: string) {
-    const workspace = await this.workspaceRepository.findBySlug(slug);
-
-    if (!workspace) {
-      throw new NotFoundException('Workspace not found');
-    }
-
-    const isOwner = workspace.ownerId === currentUserId;
-
-    const member = await this.workspaceMemberRepository.findByWorkspaceAndUser(
-      workspace.id,
+    const { project } = await this.validateProjectAccess(
+      slug,
+      projectId,
       currentUserId,
     );
-
-    if (!isOwner && !member) {
-      throw new ForbiddenException('Access denied');
-    }
-
-    const project = await this.projectRepository.findById(projectId);
-
-    if (!project) {
-      throw new NotFoundException('Project not found');
-    }
-
-    if (project.workspaceId !== workspace.id) {
-      throw new BadRequestException('Project does not belong to workspace');
-    }
 
     return this.taskRepository.findAllByProjectId(project.id);
   }
@@ -160,41 +107,12 @@ export class TasksService {
     taskId: string,
     currentUserId: string,
   ) {
-    const workspace = await this.workspaceRepository.findBySlug(slug);
-
-    if (!workspace) {
-      throw new NotFoundException('Workspace not found');
-    }
-
-    const isOwner = workspace.ownerId === currentUserId;
-
-    const member = await this.workspaceMemberRepository.findByWorkspaceAndUser(
-      workspace.id,
+    const { task } = await this.validateTaskAccess(
+      slug,
+      projectId,
+      taskId,
       currentUserId,
     );
-
-    if (!isOwner && !member) {
-      throw new ForbiddenException('Access denied');
-    }
-
-    const project = await this.projectRepository.findById(projectId);
-
-    if (!project) {
-      throw new NotFoundException('Project not found');
-    }
-
-    if (project.workspaceId !== workspace.id) {
-      throw new BadRequestException('Project does not belong to workspace');
-    }
-
-    const task = await this.taskRepository.findByProjectAndId(
-      project.id,
-      taskId,
-    );
-
-    if (!task) {
-      throw new NotFoundException('Task not found');
-    }
 
     return task;
   }
@@ -207,13 +125,12 @@ export class TasksService {
     dto: UpdateTaskDto,
     currentUserId: string,
   ) {
-    const task = await this.getTaskById(slug, projectId, taskId, currentUserId);
-
-    const workspace = await this.workspaceRepository.findBySlug(slug);
-
-    if (!workspace) {
-      throw new NotFoundException('Workspace not found');
-    }
+    const { workspace, task } = await this.validateTaskAccess(
+      slug,
+      projectId,
+      taskId,
+      currentUserId,
+    );
 
     // Only workspace owner or task assignee can update task
     if (
@@ -244,17 +161,10 @@ export class TasksService {
         throw new NotFoundException('Assignee not found');
       }
 
-      const assigneeMember =
-        await this.workspaceMemberRepository.findByWorkspaceAndUser(
-          workspace.id,
-          assignee.id,
-        );
-
-      const isWorkspaceOwner = workspace.ownerId === assignee.id;
-
-      if (!assigneeMember && !isWorkspaceOwner) {
-        throw new BadRequestException('Assignee is not a workspace member');
-      }
+      await this.workspaceAccessService.validateUserInWorkspace(
+        workspace.id,
+        assignee.id,
+      );
 
       assigneeUpdate = {
         assignee: {
@@ -282,15 +192,60 @@ export class TasksService {
     taskId: string,
     currentUserId: string,
   ) {
-    const workspace = await this.workspaceRepository.findBySlug(slug);
-
-    if (!workspace) {
-      throw new NotFoundException('Workspace not found');
-    }
+    const { workspace, task } = await this.validateTaskAccess(
+      slug,
+      projectId,
+      taskId,
+      currentUserId,
+    );
 
     if (workspace.ownerId !== currentUserId) {
       throw new ForbiddenException('Only workspace owner can delete task');
     }
+
+    return this.taskRepository.delete(task.id);
+  }
+
+  // Helper function for validate task access
+  private async validateTaskAccess(
+    slug: string,
+    projectId: string,
+    taskId: string,
+    currentUserId: string,
+  ) {
+    const { workspace, project } = await this.validateProjectAccess(
+      slug,
+      projectId,
+      currentUserId,
+    );
+
+    const task = await this.taskRepository.findByProjectAndId(
+      project.id,
+      taskId,
+    );
+
+    if (!task) {
+      throw new NotFoundException('Task not found');
+    }
+
+    return {
+      workspace,
+      project,
+      task,
+    };
+  }
+
+  // Helper function for validate task access
+  private async validateProjectAccess(
+    slug: string,
+    projectId: string,
+    currentUserId: string,
+  ) {
+    const { workspace } =
+      await this.workspaceAccessService.validateWorkspaceAccess(
+        slug,
+        currentUserId,
+      );
 
     const project = await this.projectRepository.findById(projectId);
 
@@ -302,15 +257,9 @@ export class TasksService {
       throw new BadRequestException('Project does not belong to workspace');
     }
 
-    const task = await this.taskRepository.findByProjectAndId(
-      project.id,
-      taskId,
-    );
-
-    if (!task) {
-      throw new NotFoundException('Task not found');
-    }
-
-    return this.taskRepository.delete(task.id);
+    return {
+      workspace,
+      project,
+    };
   }
 }

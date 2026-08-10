@@ -1,13 +1,12 @@
 import { Module } from '@nestjs/common';
 import { WorkspacesModule } from '../workspaces/workspaces.module';
-import { WorkspaceMembersModule } from '../workspace-members/workspace-members.module';
 import { ProjectsController } from './projects.controller';
 import { ProjectsService } from './projects.service';
 import { ProjectRepository } from './repositories/project.repository';
 import { ProjectInterface } from './interfaces/project.interface.abstract';
 
 @Module({
-  imports: [WorkspacesModule, WorkspaceMembersModule],
+  imports: [WorkspacesModule],
   controllers: [ProjectsController],
   providers: [
     ProjectsService,

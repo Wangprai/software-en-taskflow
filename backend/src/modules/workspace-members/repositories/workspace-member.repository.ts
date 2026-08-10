@@ -6,6 +6,7 @@ import {
   WorkspaceMemberList,
   WorkspaceMemberWithUser,
 } from '../types/workspace-member.type';
+import { workspaceMemberWithUserInclude } from '../types/workspace-member.include';
 
 @Injectable()
 export class WorkspaceMemberRepository implements WorkspaceMemberInterface {
@@ -23,15 +24,7 @@ export class WorkspaceMemberRepository implements WorkspaceMemberInterface {
         userId,
         role,
       },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
+      include: workspaceMemberWithUserInclude,
     });
   }
 
@@ -47,15 +40,7 @@ export class WorkspaceMemberRepository implements WorkspaceMemberInterface {
           userId,
         },
       },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
+      include: workspaceMemberWithUserInclude,
     });
   }
 
@@ -65,15 +50,7 @@ export class WorkspaceMemberRepository implements WorkspaceMemberInterface {
       where: {
         id,
       },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
+      include: workspaceMemberWithUserInclude,
     });
   }
 
@@ -85,15 +62,7 @@ export class WorkspaceMemberRepository implements WorkspaceMemberInterface {
       where: {
         workspaceId,
       },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
+      include: workspaceMemberWithUserInclude,
       orderBy: {
         role: 'asc',
       },
@@ -106,15 +75,7 @@ export class WorkspaceMemberRepository implements WorkspaceMemberInterface {
       where: {
         id,
       },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
+      include: workspaceMemberWithUserInclude,
     });
   }
 }

@@ -56,6 +56,7 @@ export class TasksController {
   }
 
   // Endpoint to update task
+  @HttpCode(HttpStatus.OK)
   @Patch(':taskId')
   async updateTask(
     @Param('slug') slug: string,
