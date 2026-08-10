@@ -9,23 +9,15 @@ import { projectInclude } from '../types/project.include';
 export class ProjectRepository implements ProjectInterface {
   constructor(private readonly prisma: PrismaService) {}
 
-  // Create a new project in database
+  // Create a new project
   async create(data: Prisma.ProjectCreateInput): Promise<ProjectDetail> {
     return this.prisma.project.create({
       data,
-      include: {
-        owner: true,
-        workspace: true,
-        _count: {
-          select: {
-            tasks: true,
-          },
-        },
-      },
+      include: projectInclude,
     });
   }
 
-  // Find all projects by workspace ID
+  // Find all projects in a workspace
   async findAllByWorkspaceId(workspaceId: string): Promise<ProjectList> {
     return this.prisma.project.findMany({
       where: {
@@ -38,7 +30,7 @@ export class ProjectRepository implements ProjectInterface {
     });
   }
 
-  // Find project by ID
+  // Find a project by ID
   async findById(id: string): Promise<ProjectDetail | null> {
     return this.prisma.project.findUnique({
       where: {
@@ -48,7 +40,7 @@ export class ProjectRepository implements ProjectInterface {
     });
   }
 
-  // Update project
+  // Update a project
   async update(
     id: string,
     data: Prisma.ProjectUpdateInput,
@@ -62,7 +54,7 @@ export class ProjectRepository implements ProjectInterface {
     });
   }
 
-  // Delete project
+  // Delete a project
   async delete(id: string): Promise<ProjectDetail> {
     return this.prisma.project.delete({
       where: {

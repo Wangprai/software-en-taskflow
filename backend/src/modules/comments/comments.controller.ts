@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   UseGuards,
@@ -27,8 +28,8 @@ export class CommentsController {
   @Post()
   async createComment(
     @Param('slug') slug: string,
-    @Param('projectId') projectId: string,
-    @Param('taskId') taskId: string,
+    @Param('projectId', ParseUUIDPipe) projectId: string,
+    @Param('taskId', ParseUUIDPipe) taskId: string,
     @Body() dto: CreateCommentDto,
     @CurrentUser() user: AuthUser,
   ) {
@@ -45,8 +46,8 @@ export class CommentsController {
   @Get()
   async getAllComments(
     @Param('slug') slug: string,
-    @Param('projectId') projectId: string,
-    @Param('taskId') taskId: string,
+    @Param('projectId', ParseUUIDPipe) projectId: string,
+    @Param('taskId', ParseUUIDPipe) taskId: string,
     @CurrentUser() user: AuthUser,
   ) {
     return this.commentsService.getComments(slug, projectId, taskId, user.id);
@@ -56,9 +57,9 @@ export class CommentsController {
   @Get(':commentId')
   async getCommentById(
     @Param('slug') slug: string,
-    @Param('projectId') projectId: string,
-    @Param('taskId') taskId: string,
-    @Param('commentId') commentId: string,
+    @Param('projectId', ParseUUIDPipe) projectId: string,
+    @Param('taskId', ParseUUIDPipe) taskId: string,
+    @Param('commentId', ParseUUIDPipe) commentId: string,
     @CurrentUser() user: AuthUser,
   ) {
     return this.commentsService.getCommentById(
@@ -75,9 +76,9 @@ export class CommentsController {
   @Patch(':commentId')
   async updateComment(
     @Param('slug') slug: string,
-    @Param('projectId') projectId: string,
-    @Param('taskId') taskId: string,
-    @Param('commentId') commentId: string,
+    @Param('projectId', ParseUUIDPipe) projectId: string,
+    @Param('taskId', ParseUUIDPipe) taskId: string,
+    @Param('commentId', ParseUUIDPipe) commentId: string,
     @Body() dto: UpdateCommentDto,
     @CurrentUser() user: AuthUser,
   ) {
@@ -96,9 +97,9 @@ export class CommentsController {
   @Delete(':commentId')
   async deleteComment(
     @Param('slug') slug: string,
-    @Param('projectId') projectId: string,
-    @Param('taskId') taskId: string,
-    @Param('commentId') commentId: string,
+    @Param('projectId', ParseUUIDPipe) projectId: string,
+    @Param('taskId', ParseUUIDPipe) taskId: string,
+    @Param('commentId', ParseUUIDPipe) commentId: string,
     @CurrentUser() user: AuthUser,
   ) {
     await this.commentsService.deleteComment(

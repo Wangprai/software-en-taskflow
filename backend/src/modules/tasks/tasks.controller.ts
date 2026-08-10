@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   UseGuards,
@@ -27,7 +28,7 @@ export class TasksController {
   @Post()
   async createTask(
     @Param('slug') slug: string,
-    @Param('projectId') projectId: string,
+    @Param('projectId', ParseUUIDPipe) projectId: string,
     @Body() dto: CreateTaskDto,
     @CurrentUser() user: AuthUser,
   ) {
@@ -38,7 +39,7 @@ export class TasksController {
   @Get()
   async getAllTasks(
     @Param('slug') slug: string,
-    @Param('projectId') projectId: string,
+    @Param('projectId', ParseUUIDPipe) projectId: string,
     @CurrentUser() user: AuthUser,
   ) {
     return this.tasksService.getAllTasks(slug, projectId, user.id);
@@ -48,7 +49,7 @@ export class TasksController {
   @Get(':taskId')
   async getTaskById(
     @Param('slug') slug: string,
-    @Param('projectId') projectId: string,
+    @Param('projectId', ParseUUIDPipe) projectId: string,
     @Param('taskId') taskId: string,
     @CurrentUser() user: AuthUser,
   ) {
@@ -60,7 +61,7 @@ export class TasksController {
   @Patch(':taskId')
   async updateTask(
     @Param('slug') slug: string,
-    @Param('projectId') projectId: string,
+    @Param('projectId', ParseUUIDPipe) projectId: string,
     @Param('taskId') taskId: string,
     @Body() dto: UpdateTaskDto,
     @CurrentUser() user: AuthUser,
@@ -73,7 +74,7 @@ export class TasksController {
   @Delete(':taskId')
   async deleteTask(
     @Param('slug') slug: string,
-    @Param('projectId') projectId: string,
+    @Param('projectId', ParseUUIDPipe) projectId: string,
     @Param('taskId') taskId: string,
     @CurrentUser() user: AuthUser,
   ) {

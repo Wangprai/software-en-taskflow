@@ -11,6 +11,7 @@ import { ProjectInterface } from '../projects/interfaces/project.interface.abstr
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { WorkspaceAccessService } from '../workspaces/workspace-access.service';
+import { CommentDetail, CommentList } from './types/comment.type';
 
 @Injectable()
 export class CommentsService {
@@ -34,7 +35,7 @@ export class CommentsService {
     taskId: string,
     dto: CreateCommentDto,
     currentUserId: string,
-  ) {
+  ): Promise<CommentDetail> {
     const { task } = await this.validateTaskAccess(
       slug,
       projectId,
@@ -55,7 +56,7 @@ export class CommentsService {
     projectId: string,
     taskId: string,
     currentUserId: string,
-  ) {
+  ): Promise<CommentList> {
     await this.validateTaskAccess(slug, projectId, taskId, currentUserId);
 
     return this.commentRepository.findAllByTaskId(taskId);
@@ -68,7 +69,7 @@ export class CommentsService {
     taskId: string,
     commentId: string,
     currentUserId: string,
-  ) {
+  ): Promise<CommentDetail | null> {
     await this.validateTaskAccess(slug, projectId, taskId, currentUserId);
 
     return this.validateComment(taskId, commentId);
@@ -82,7 +83,7 @@ export class CommentsService {
     commentId: string,
     dto: UpdateCommentDto,
     currentUserId: string,
-  ) {
+  ): Promise<CommentDetail> {
     await this.validateTaskAccess(slug, projectId, taskId, currentUserId);
 
     const comment = await this.validateComment(taskId, commentId);
@@ -103,7 +104,7 @@ export class CommentsService {
     taskId: string,
     commentId: string,
     currentUserId: string,
-  ) {
+  ): Promise<CommentDetail> {
     await this.validateTaskAccess(slug, projectId, taskId, currentUserId);
 
     const comment = await this.validateComment(taskId, commentId);
@@ -152,14 +153,13 @@ export class CommentsService {
 
   // Helper for validate comment
   private async validateComment(taskId: string, commentId: string) {
-    const comment = await this.commentRepository.findById(commentId);
+    const comment = await this.commentRepository.findByTaskAndId(
+      taskId,
+      commentId,
+    );
 
     if (!comment) {
       throw new NotFoundException('Comment not found');
-    }
-
-    if (comment.taskId !== taskId) {
-      throw new BadRequestException('Comment does not belong to task');
     }
 
     return comment;

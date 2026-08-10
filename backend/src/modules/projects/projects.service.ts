@@ -61,7 +61,7 @@ export class ProjectsService {
   }
 
   // get project detail
-  async getProjectById(slug: string, projectId: string, currentUserId: string) {
+  async getProjectById(slug: string, projectId: string, currentUserId: string): Promise<ProjectDetail> {
     const { project } = await this.validateProjectAccess(
       slug,
       projectId,

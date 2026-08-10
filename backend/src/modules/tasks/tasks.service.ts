@@ -11,6 +11,7 @@ import { UserInterface } from '../users/interfaces/user.interface.abstract';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { WorkspaceAccessService } from '../workspaces/workspace-access.service';
+import { TaskDetail, TaskList } from './types/task.type';
 
 @Injectable()
 export class TasksService {
@@ -33,7 +34,7 @@ export class TasksService {
     projectId: string,
     dto: CreateTaskDto,
     currentUserId: string,
-  ) {
+  ): Promise<TaskDetail> {
     const { workspace, project } = await this.validateProjectAccess(
       slug,
       projectId,
@@ -90,7 +91,11 @@ export class TasksService {
   }
 
   // Get all task in project
-  async getAllTasks(slug: string, projectId: string, currentUserId: string) {
+  async getAllTasks(
+    slug: string,
+    projectId: string,
+    currentUserId: string,
+  ): Promise<TaskList> {
     const { project } = await this.validateProjectAccess(
       slug,
       projectId,
@@ -106,7 +111,7 @@ export class TasksService {
     projectId: string,
     taskId: string,
     currentUserId: string,
-  ) {
+  ): Promise<TaskDetail | null> {
     const { task } = await this.validateTaskAccess(
       slug,
       projectId,
@@ -124,7 +129,7 @@ export class TasksService {
     taskId: string,
     dto: UpdateTaskDto,
     currentUserId: string,
-  ) {
+  ): Promise<TaskDetail> {
     const { workspace, task } = await this.validateTaskAccess(
       slug,
       projectId,
@@ -191,7 +196,7 @@ export class TasksService {
     projectId: string,
     taskId: string,
     currentUserId: string,
-  ) {
+  ): Promise<TaskDetail> {
     const { workspace, task } = await this.validateTaskAccess(
       slug,
       projectId,

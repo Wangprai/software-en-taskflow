@@ -11,6 +11,8 @@ export abstract class WorkspaceMemberInterface {
     role: MemberRole,
   ): Promise<WorkspaceMemberWithUser>;
 
+  abstract findById(id: string): Promise<WorkspaceMemberWithUser | null>;
+
   abstract findByWorkspaceAndUser(
     workspaceId: string,
     userId: string,
@@ -19,8 +21,6 @@ export abstract class WorkspaceMemberInterface {
   abstract findAllByWorkspaceId(
     workspaceId: string,
   ): Promise<WorkspaceMemberList>;
-
-  abstract findById(id: string): Promise<WorkspaceMemberWithUser | null>;
 
   abstract delete(id: string): Promise<WorkspaceMemberWithUser>;
 }

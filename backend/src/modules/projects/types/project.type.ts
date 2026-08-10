@@ -1,22 +1,8 @@
 import { Prisma } from '@prisma/client';
+import { projectInclude } from './project.include';
 
-export type ProjectDetail =
-  Prisma.ProjectGetPayload<{
-    include: {
-      owner: {
-        select: {
-          id: true;
-          name: true;
-          email: true;
-        };
-      };
-      workspace: true;
-      _count: {
-        select: {
-          tasks: true;
-        };
-      };
-    };
-  }>;
+export type ProjectDetail = Prisma.ProjectGetPayload<{
+  include: typeof projectInclude;
+}>;
 
 export type ProjectList = ProjectDetail[];

@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   UseGuards,
@@ -46,7 +47,7 @@ export class ProjectsController {
   @Get(':projectId')
   async getProjectById(
     @Param('slug') slug: string,
-    @Param('projectId') projectId: string,
+    @Param('projectId', ParseUUIDPipe) projectId: string,
     @CurrentUser() user: AuthUser,
   ) {
     return this.projectsService.getProjectById(slug, projectId, user.id);
@@ -56,7 +57,7 @@ export class ProjectsController {
   @Patch(':projectId')
   async updateProject(
     @Param('slug') slug: string,
-    @Param('projectId') projectId: string,
+    @Param('projectId', ParseUUIDPipe) projectId: string,
     @Body() dto: UpdateProjectDto,
     @CurrentUser() user: AuthUser,
   ) {
@@ -68,7 +69,7 @@ export class ProjectsController {
   @Delete(':projectId')
   async deleteProject(
     @Param('slug') slug: string,
-    @Param('projectId') projectId: string,
+    @Param('projectId', ParseUUIDPipe) projectId: string,
     @CurrentUser() user: AuthUser,
   ) {
     await this.projectsService.deleteProject(slug, projectId, user.id);

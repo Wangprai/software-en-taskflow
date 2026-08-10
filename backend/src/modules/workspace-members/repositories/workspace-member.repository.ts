@@ -12,7 +12,7 @@ import { workspaceMemberWithUserInclude } from '../types/workspace-member.includ
 export class WorkspaceMemberRepository implements WorkspaceMemberInterface {
   constructor(private readonly prisma: PrismaService) {}
 
-  // Create new member
+  // Create a new workspace member
   async create(
     workspaceId: string,
     userId: string,
@@ -28,7 +28,17 @@ export class WorkspaceMemberRepository implements WorkspaceMemberInterface {
     });
   }
 
-  // Find member in workspace
+   // Find a member by ID
+  async findById(id: string): Promise<WorkspaceMemberWithUser | null> {
+    return this.prisma.workspaceMember.findUnique({
+      where: {
+        id,
+      },
+      include: workspaceMemberWithUserInclude,
+    });
+  }
+
+  // Find a member in a workspace by user
   async findByWorkspaceAndUser(
     workspaceId: string,
     userId: string,
@@ -44,17 +54,7 @@ export class WorkspaceMemberRepository implements WorkspaceMemberInterface {
     });
   }
 
-  // Find member by id
-  async findById(id: string): Promise<WorkspaceMemberWithUser | null> {
-    return this.prisma.workspaceMember.findUnique({
-      where: {
-        id,
-      },
-      include: workspaceMemberWithUserInclude,
-    });
-  }
-
-  // Get all members in workspace
+  // Find all members in a workspace
   async findAllByWorkspaceId(
     workspaceId: string,
   ): Promise<WorkspaceMemberList> {
@@ -69,7 +69,7 @@ export class WorkspaceMemberRepository implements WorkspaceMemberInterface {
     });
   }
 
-  // Delete member
+  // Delete a workspace member
   async delete(id: string): Promise<WorkspaceMemberWithUser> {
     return this.prisma.workspaceMember.delete({
       where: {

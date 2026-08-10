@@ -1,4 +1,4 @@
-import { Workspace, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import {
   WorkspaceDetail,
   WorkspaceListItem,

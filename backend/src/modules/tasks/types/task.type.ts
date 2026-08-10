@@ -1,23 +1,8 @@
 import { Prisma } from '@prisma/client';
+import { taskInclude } from './task.include';
 
 export type TaskDetail = Prisma.TaskGetPayload<{
-  include: {
-    project: true;
-    assignee: {
-      select: {
-        id: true;
-        name: true;
-        email: true;
-      };
-    };
-    createdBy: {
-      select: {
-        id: true;
-        name: true;
-        email: true;
-      };
-    };
-  };
+  include: typeof taskInclude;
 }>;
 
 export type TaskList = TaskDetail[];
