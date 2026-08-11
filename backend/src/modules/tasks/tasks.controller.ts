@@ -80,4 +80,15 @@ export class TasksController {
   ) {
     await this.tasksService.deleteTask(slug, projectId, taskId, user.id);
   }
+
+  // Endpoint to get all activities
+  @Get(':taskId/activities')
+  async getActivities(
+    @Param('slug') slug: string,
+    @Param('projectId', ParseUUIDPipe) projectId: string,
+    @Param('taskId', ParseUUIDPipe) taskId: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.tasksService.getActivities(slug, projectId, taskId, user.id);
+  }
 }

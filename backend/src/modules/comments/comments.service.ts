@@ -12,6 +12,8 @@ import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { WorkspaceAccessService } from '../workspaces/workspace-access.service';
 import { CommentDetail, CommentList } from './types/comment.type';
+import { ActivitiesService } from '../activities/activities.service';
+import { ActivityType } from '@prisma/client';
 
 @Injectable()
 export class CommentsService {
@@ -26,6 +28,8 @@ export class CommentsService {
     private readonly projectRepository: ProjectInterface,
 
     private readonly workspaceAccessService: WorkspaceAccessService,
+
+    private readonly activitiesService: ActivitiesService,
   ) {}
 
   // Create comment
@@ -43,11 +47,27 @@ export class CommentsService {
       currentUserId,
     );
 
-    return this.commentRepository.create({
+    const comment = await this.commentRepository.create({
       content: dto.content,
-      task: { connect: { id: task.id } },
-      user: { connect: { id: currentUserId } },
+      task: {
+        connect: {
+          id: task.id,
+        },
+      },
+      user: {
+        connect: {
+          id: currentUserId,
+        },
+      },
     });
+
+    await this.activitiesService.createActivity(
+      task.id,
+      currentUserId,
+      ActivityType.COMMENT_CREATED,
+    );
+
+    return comment;
   }
 
   // Get all comments from task
@@ -69,7 +89,7 @@ export class CommentsService {
     taskId: string,
     commentId: string,
     currentUserId: string,
-  ): Promise<CommentDetail | null> {
+  ): Promise<CommentDetail>  {
     await this.validateTaskAccess(slug, projectId, taskId, currentUserId);
 
     return this.validateComment(taskId, commentId);

@@ -12,6 +12,8 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { WorkspaceAccessService } from '../workspaces/workspace-access.service';
 import { TaskDetail, TaskList } from './types/task.type';
+import { ActivitiesService } from '../activities/activities.service';
+import { ActivityType, Prisma } from '@prisma/client';
 
 @Injectable()
 export class TasksService {
@@ -26,6 +28,8 @@ export class TasksService {
     private readonly userRepository: UserInterface,
 
     private readonly workspaceAccessService: WorkspaceAccessService,
+
+    private readonly activitiesService: ActivitiesService,
   ) {}
 
   // Create task in project
@@ -60,7 +64,7 @@ export class TasksService {
       assigneeId = assignee.id;
     }
 
-    return this.taskRepository.create({
+    const task = await this.taskRepository.create({
       title: dto.title,
       description: dto.description,
       priority: dto.priority,
@@ -88,6 +92,31 @@ export class TasksService {
         },
       }),
     });
+
+    await this.activitiesService.createActivity(
+      task.id,
+      currentUserId,
+      ActivityType.TASK_CREATED,
+    );
+
+    return task;
+  }
+
+  // Get all activities
+  async getActivities(
+    slug: string,
+    projectId: string,
+    taskId: string,
+    currentUserId: string,
+  ) {
+    const { task } = await this.validateTaskAccess(
+      slug,
+      projectId,
+      taskId,
+      currentUserId,
+    );
+
+    return this.activitiesService.getActivitiesByTaskId(task.id);
   }
 
   // Get all task in project
@@ -129,7 +158,7 @@ export class TasksService {
     taskId: string,
     dto: UpdateTaskDto,
     currentUserId: string,
-  ): Promise<TaskDetail> {
+  ) {
     const { workspace, task } = await this.validateTaskAccess(
       slug,
       projectId,
@@ -147,7 +176,13 @@ export class TasksService {
       );
     }
 
-    let assigneeUpdate = {};
+    const isStatusChanged =
+      dto.status !== undefined && dto.status !== task.status;
+
+    const isAssigneeChanged =
+      dto.assigneeId !== undefined && dto.assigneeId !== task.assigneeId;
+
+    let assigneeUpdate: Prisma.TaskUpdateInput = {};
 
     // Unassign task
     if (dto.assigneeId === null) {
@@ -180,7 +215,7 @@ export class TasksService {
       };
     }
 
-    return this.taskRepository.update(task.id, {
+    const updatedTask = await this.taskRepository.update(task.id, {
       title: dto.title,
       description: dto.description,
       status: dto.status,
@@ -188,6 +223,41 @@ export class TasksService {
       dueDate: dto.dueDate ? new Date(dto.dueDate) : undefined,
       ...assigneeUpdate,
     });
+
+    // Status changed
+    if (isStatusChanged) {
+      await this.activitiesService.createActivity(
+        task.id,
+        currentUserId,
+        ActivityType.STATUS_CHANGED,
+      );
+    }
+
+    // Assignee changed
+    if (isAssigneeChanged) {
+      await this.activitiesService.createActivity(
+        task.id,
+        currentUserId,
+        ActivityType.TASK_ASSIGNED,
+      );
+    }
+
+    // General task update
+    const hasGeneralUpdate =
+      dto.title !== undefined ||
+      dto.description !== undefined ||
+      dto.priority !== undefined ||
+      dto.dueDate !== undefined;
+
+    if (hasGeneralUpdate) {
+      await this.activitiesService.createActivity(
+        task.id,
+        currentUserId,
+        ActivityType.TASK_UPDATED,
+      );
+    }
+
+    return updatedTask;
   }
 
   // Delete task
@@ -233,11 +303,7 @@ export class TasksService {
       throw new NotFoundException('Task not found');
     }
 
-    return {
-      workspace,
-      project,
-      task,
-    };
+    return { workspace, project, task };
   }
 
   // Helper function for validate task access
@@ -262,9 +328,6 @@ export class TasksService {
       throw new BadRequestException('Project does not belong to workspace');
     }
 
-    return {
-      workspace,
-      project,
-    };
+    return { workspace, project };
   }
 }

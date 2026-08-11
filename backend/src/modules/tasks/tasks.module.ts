@@ -6,12 +6,14 @@ import { TasksService } from './tasks.service';
 import { TasksController } from './tasks.controller';
 import { TaskRepository } from './repositories/task.repository';
 import { TaskInterface } from './interfaces/task.interface.abstract';
+import { ActivitiesModule } from '../activities/activities.module';
 
 @Module({
   imports: [
     WorkspacesModule,
     ProjectsModule,
     UsersModule,
+    ActivitiesModule,
   ],
   controllers: [TasksController],
   providers: [
