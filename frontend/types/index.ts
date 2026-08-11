@@ -15,11 +15,6 @@ export interface AuthResponse {
   user: User;
 }
 
-export interface ApiError {
-  message: string;
-  status?: number;
-}
-
 export interface Workspace {
   id: string;
   name: string;
@@ -42,12 +37,14 @@ export interface Project {
   id: string;
   workspaceId: string;
   name: string;
+  key: string;
   description: string | null;
   ownerId: string;
   owner: User;
   createdAt: string;
   updatedAt: string;
   taskCount: number;
+  color: string;
 }
 
 export interface Task {

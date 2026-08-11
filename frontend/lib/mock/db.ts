@@ -1,7 +1,12 @@
-import type { Project, Role, Task, User, Workspace, WorkspaceMember } from "@/types";
-
-const DB_KEY = "taskflow.db.v1";
-
+import type {
+  Project,
+  Role,
+  Task,
+  User,
+  Workspace,
+  WorkspaceMember,
+} from "@/types";
+const DB_KEY = "taskflow.db.v2";
 export interface Db {
   users: Array<User & { password: string }>;
   workspaces: Workspace[];
@@ -9,7 +14,6 @@ export interface Db {
   projects: Project[];
   tasks: Task[];
 }
-
 const USERS: Array<User & { password: string }> = [
   {
     id: "u_1",
@@ -18,23 +22,46 @@ const USERS: Array<User & { password: string }> = [
     password: "password123",
     avatarUrl: null,
   },
-  { id: "u_2", name: "Priya Nair", email: "priya@taskflow.dev", password: "password123" },
-  { id: "u_3", name: "Marcus Cole", email: "marcus@taskflow.dev", password: "password123" },
-  { id: "u_4", name: "Sofia Lindqvist", email: "sofia@taskflow.dev", password: "password123" },
-  { id: "u_5", name: "Dan Okafor", email: "dan@taskflow.dev", password: "password123" },
+  {
+    id: "u_2",
+    name: "Priya Nair",
+    email: "priya@taskflow.dev",
+    password: "password123",
+    avatarUrl: null,
+  },
+  {
+    id: "u_3",
+    name: "Marcus Cole",
+    email: "marcus@taskflow.dev",
+    password: "password123",
+    avatarUrl: null,
+  },
+  {
+    id: "u_4",
+    name: "Sofia Lindqvist",
+    email: "sofia@taskflow.dev",
+    password: "password123",
+    avatarUrl: null,
+  },
+  {
+    id: "u_5",
+    name: "Dan Okafor",
+    email: "dan@taskflow.dev",
+    password: "password123",
+    avatarUrl: null,
+  },
 ];
-
 function iso(daysFromNow: number) {
   return new Date(Date.now() + daysFromNow * 86_400_000).toISOString();
 }
-
 function seed(): Db {
   const workspaces: Workspace[] = [
     {
       id: "w_1",
       name: "Acme Product",
       slug: "acme-product",
-      description: "Core product squad building the TaskFlow platform experience.",
+      description:
+        "Core product squad building the TaskFlow platform experience.",
       createdAt: iso(-120),
       memberCount: 0,
       projectCount: 0,
@@ -58,7 +85,6 @@ function seed(): Db {
       projectCount: 0,
     },
   ];
-
   const roles: Array<[string, string, Role]> = [
     ["w_1", "u_1", "ADMIN"],
     ["w_1", "u_2", "MEMBER"],
@@ -70,26 +96,44 @@ function seed(): Db {
     ["w_3", "u_3", "ADMIN"],
     ["w_3", "u_5", "MEMBER"],
   ];
-
-  const members: WorkspaceMember[] = roles.map(([workspaceId, userId, role], i) => {
-    const u = USERS.find((x) => x.id === userId)!;
+  const members: WorkspaceMember[] = roles.map(
+    ([workspaceId, userId, role], i) => {
+      const u = USERS.find((x) => x.id === userId)!;
+      return {
+        id: `m_${i + 1}`,
+        workspaceId,
+        role,
+        joinedAt: iso(-100 + i * 4),
+        user: {
+          id: u.id,
+          name: u.name,
+          email: u.email,
+          avatarUrl: u.avatarUrl ?? null,
+        },
+      };
+    },
+  );
+  const plain = (id: string): User => {
+    const u = USERS.find((x) => x.id === id)!;
     return {
-      id: `m_${i + 1}`,
-      workspaceId,
-      role,
-      joinedAt: iso(-100 + i * 4),
-      user: { id: u.id, name: u.name, email: u.email, avatarUrl: u.avatarUrl ?? null },
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      avatarUrl: u.avatarUrl ?? null,
     };
-  });
-
+  };
   const projects: Project[] = [
     {
       id: "p_1",
       workspaceId: "w_1",
       name: "Kanban Board v2",
       key: "KAN",
-      description: "Rebuild the board with virtualised columns and realtime presence.",
+      description:
+        "Rebuild the board with virtualised columns and realtime presence.",
+      ownerId: "u_1",
+      owner: plain("u_1"),
       createdAt: iso(-42),
+      updatedAt: iso(-42),
       taskCount: 0,
       color: "chart-1",
     },
@@ -99,7 +143,10 @@ function seed(): Db {
       name: "Billing & Plans",
       key: "BIL",
       description: "Self-serve upgrades, seat management and invoice history.",
+      ownerId: "u_1",
+      owner: plain("u_1"),
       createdAt: iso(-27),
+      updatedAt: iso(-27),
       taskCount: 0,
       color: "chart-2",
     },
@@ -109,7 +156,10 @@ function seed(): Db {
       name: "Mobile Companion",
       key: "MOB",
       description: "Read-only mobile app for triage and notifications.",
+      ownerId: "u_1",
+      owner: plain("u_1"),
       createdAt: iso(-11),
+      updatedAt: iso(-11),
       taskCount: 0,
       color: "chart-4",
     },
@@ -119,7 +169,10 @@ function seed(): Db {
       name: "Onboarding Funnel",
       key: "ONB",
       description: "Reduce time-to-first-project below 4 minutes.",
+      ownerId: "u_1",
+      owner: plain("u_1"),
       createdAt: iso(-33),
+      updatedAt: iso(-33),
       taskCount: 0,
       color: "chart-3",
     },
@@ -129,7 +182,10 @@ function seed(): Db {
       name: "Lifecycle Emails",
       key: "LFC",
       description: "Behaviour-driven email sequences and win-back campaigns.",
+      ownerId: "u_1",
+      owner: plain("u_1"),
       createdAt: iso(-9),
+      updatedAt: iso(-9),
       taskCount: 0,
       color: "chart-5",
     },
@@ -139,19 +195,24 @@ function seed(): Db {
       name: "CI Pipeline Rewrite",
       key: "CIP",
       description: "Cut median pipeline duration from 14m to under 5m.",
+      ownerId: "u_1",
+      owner: plain("u_1"),
       createdAt: iso(-18),
+      updatedAt: iso(-18),
       taskCount: 0,
       color: "chart-2",
     },
   ];
 
-  const plain = (id: string) => {
-    const u = USERS.find((x) => x.id === id)!;
-    return { id: u.id, name: u.name, email: u.email, avatarUrl: null };
-  };
-
   const rawTasks: Array<
-    [string, string, Task["status"], Task["priority"], string | null, number | null]
+    [
+      string,
+      string,
+      Task["status"],
+      Task["priority"],
+      string | null,
+      number | null,
+    ]
   > = [
     ["p_1", "Design column drag affordances", "TODO", "HIGH", "u_2", 3],
     ["p_1", "Virtualise long task lists", "TODO", "MEDIUM", "u_3", 6],
@@ -176,27 +237,36 @@ function seed(): Db {
     ["p_6", "Remote build cache", "REVIEW", "HIGH", "u_5", 3],
     ["p_6", "Flaky test quarantine", "DONE", "MEDIUM", "u_3", -2],
   ];
-
-  const tasks: Task[] = rawTasks.map(([projectId, title, status, priority, assignee, due], i) => ({
-    id: `t_${i + 1}`,
-    projectId,
-    title,
-    description: "",
-    status,
-    priority,
-    assignee: assignee ? plain(assignee) : null,
-    dueDate: due === null ? null : iso(due),
-    order: i,
-  }));
-
-  return { users: USERS, workspaces, members, projects, tasks, ...{} };
+  const now = new Date().toISOString();
+  const tasks: Task[] = rawTasks.map(
+    ([projectId, title, status, priority, assigneeId, due], i) => ({
+      id: `t_${i + 1}`,
+      projectId,
+      title,
+      description: "",
+      status,
+      priority,
+      position: i,
+      assigneeId,
+      assignee: assigneeId ? plain(assigneeId) : null,
+      createdById: USERS[0].id,
+      createdBy: plain(USERS[0].id),
+      dueDate: due === null ? null : iso(due),
+      createdAt: now,
+      updatedAt: now,
+    }),
+  );
+  return { users: USERS, workspaces, members, projects, tasks };
 }
-
 export function loadDb(): Db {
-  if (typeof window === "undefined") return recount(seed());
+  if (typeof window === "undefined") {
+    return recount(seed());
+  }
   try {
     const raw = window.localStorage.getItem(DB_KEY);
-    if (raw) return recount(JSON.parse(raw) as Db);
+    if (raw) {
+      return recount(JSON.parse(raw) as Db);
+    }
   } catch {
     /* ignore corrupt storage */
   }
@@ -204,12 +274,10 @@ export function loadDb(): Db {
   saveDb(fresh);
   return fresh;
 }
-
 export function saveDb(db: Db) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(DB_KEY, JSON.stringify(db));
 }
-
 export function recount(db: Db): Db {
   db.workspaces = db.workspaces.map((w) => ({
     ...w,
@@ -222,11 +290,9 @@ export function recount(db: Db): Db {
   }));
   return db;
 }
-
 export function uid(prefix: string) {
   return `${prefix}_${Math.random().toString(36).slice(2, 9)}`;
 }
-
 export function slugify(value: string) {
   return value
     .toLowerCase()
