@@ -7,6 +7,7 @@ import { TasksController } from './tasks.controller';
 import { TaskRepository } from './repositories/task.repository';
 import { TaskInterface } from './interfaces/task.interface.abstract';
 import { ActivitiesModule } from '../activities/activities.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { ActivitiesModule } from '../activities/activities.module';
     ProjectsModule,
     UsersModule,
     ActivitiesModule,
+    NotificationsModule,
   ],
   controllers: [TasksController],
   providers: [

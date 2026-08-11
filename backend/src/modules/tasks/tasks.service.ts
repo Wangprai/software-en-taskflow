@@ -13,7 +13,8 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { WorkspaceAccessService } from '../workspaces/workspace-access.service';
 import { TaskDetail, TaskList } from './types/task.type';
 import { ActivitiesService } from '../activities/activities.service';
-import { ActivityType, Prisma } from '@prisma/client';
+import { ActivityType, NotificationType, Prisma } from '@prisma/client';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class TasksService {
@@ -30,6 +31,8 @@ export class TasksService {
     private readonly workspaceAccessService: WorkspaceAccessService,
 
     private readonly activitiesService: ActivitiesService,
+
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   // Create task in project
@@ -98,6 +101,19 @@ export class TasksService {
       currentUserId,
       ActivityType.TASK_CREATED,
     );
+
+    if (task.assigneeId && task.assigneeId !== currentUserId) {
+      await this.notificationsService.createNotification({
+        userId: task.assigneeId,
+        type: NotificationType.TASK_ASSIGNED,
+        message: `You have been assigned to task "${task.title}"`,
+        payload: {
+          taskId: task.id,
+          projectId,
+          workspaceSlug: slug,
+        },
+      });
+    }
 
     return task;
   }
@@ -182,9 +198,16 @@ export class TasksService {
     const isAssigneeChanged =
       dto.assigneeId !== undefined && dto.assigneeId !== task.assigneeId;
 
-    let assigneeUpdate: Prisma.TaskUpdateInput = {};
+    const hasGeneralUpdate =
+      dto.title !== undefined ||
+      dto.description !== undefined ||
+      dto.priority !== undefined ||
+      dto.dueDate !== undefined;
 
-    // Unassign task
+    let assigneeUpdate: Prisma.TaskUpdateInput = {};
+    let newAssigneeId: string | null = null;
+
+    // Unassign
     if (dto.assigneeId === null) {
       assigneeUpdate = {
         assignee: {
@@ -193,7 +216,7 @@ export class TasksService {
       };
     }
 
-    // Assign task
+    // Assign
     else if (dto.assigneeId) {
       const assignee = await this.userRepository.findById(dto.assigneeId);
 
@@ -205,6 +228,8 @@ export class TasksService {
         workspace.id,
         assignee.id,
       );
+
+      newAssigneeId = assignee.id;
 
       assigneeUpdate = {
         assignee: {
@@ -220,7 +245,12 @@ export class TasksService {
       description: dto.description,
       status: dto.status,
       priority: dto.priority,
-      dueDate: dto.dueDate ? new Date(dto.dueDate) : undefined,
+      dueDate:
+        dto.dueDate !== undefined
+          ? dto.dueDate
+            ? new Date(dto.dueDate)
+            : null
+          : undefined,
       ...assigneeUpdate,
     });
 
@@ -231,6 +261,20 @@ export class TasksService {
         currentUserId,
         ActivityType.STATUS_CHANGED,
       );
+
+      if (updatedTask.assigneeId && updatedTask.assigneeId !== currentUserId) {
+        await this.notificationsService.createNotification({
+          userId: updatedTask.assigneeId,
+          type: NotificationType.STATUS_CHANGED,
+          message: `Task "${updatedTask.title}" status changed to ${updatedTask.status}`,
+          payload: {
+            taskId: task.id,
+            projectId,
+            workspaceSlug: slug,
+            status: updatedTask.status,
+          },
+        });
+      }
     }
 
     // Assignee changed
@@ -240,15 +284,22 @@ export class TasksService {
         currentUserId,
         ActivityType.TASK_ASSIGNED,
       );
+
+      if (newAssigneeId && newAssigneeId !== currentUserId) {
+        await this.notificationsService.createNotification({
+          userId: newAssigneeId,
+          type: NotificationType.TASK_ASSIGNED,
+          message: `You have been assigned to task "${updatedTask.title}"`,
+          payload: {
+            taskId: task.id,
+            projectId,
+            workspaceSlug: slug,
+          },
+        });
+      }
     }
 
     // General task update
-    const hasGeneralUpdate =
-      dto.title !== undefined ||
-      dto.description !== undefined ||
-      dto.priority !== undefined ||
-      dto.dueDate !== undefined;
-
     if (hasGeneralUpdate) {
       await this.activitiesService.createActivity(
         task.id,

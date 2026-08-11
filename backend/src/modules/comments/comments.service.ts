@@ -13,7 +13,8 @@ import { UpdateCommentDto } from './dto/update-comment.dto';
 import { WorkspaceAccessService } from '../workspaces/workspace-access.service';
 import { CommentDetail, CommentList } from './types/comment.type';
 import { ActivitiesService } from '../activities/activities.service';
-import { ActivityType } from '@prisma/client';
+import { ActivityType, NotificationType } from '@prisma/client';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class CommentsService {
@@ -30,6 +31,8 @@ export class CommentsService {
     private readonly workspaceAccessService: WorkspaceAccessService,
 
     private readonly activitiesService: ActivitiesService,
+
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   // Create comment
@@ -67,6 +70,21 @@ export class CommentsService {
       ActivityType.COMMENT_CREATED,
     );
 
+    // Notify task assignee
+    if (task.assigneeId && task.assigneeId !== currentUserId) {
+      await this.notificationsService.createNotification({
+        userId: task.assigneeId,
+        type: NotificationType.COMMENT_ADDED,
+        message: `New comment added to task "${task.title}"`,
+        payload: {
+          taskId: task.id,
+          commentId: comment.id,
+          projectId,
+          workspaceSlug: slug,
+        },
+      });
+    }
+
     return comment;
   }
 
@@ -89,7 +107,7 @@ export class CommentsService {
     taskId: string,
     commentId: string,
     currentUserId: string,
-  ): Promise<CommentDetail>  {
+  ): Promise<CommentDetail> {
     await this.validateTaskAccess(slug, projectId, taskId, currentUserId);
 
     return this.validateComment(taskId, commentId);
