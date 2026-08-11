@@ -11,3 +11,4 @@ export const tasksApi = {
     api.patch<Task>(`/tasks/${taskId}`, input).then((r) => r.data),
   remove: (taskId: string) => api.delete(`/tasks/${taskId}`).then((r) => r.data),
 };
+
