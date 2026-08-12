@@ -10,6 +10,8 @@ export const API_BASE_URL =
 export const ROUTES = {
   login: "/login",
   register: "/register",
+  workspaces: "/workspaces",
+  notifications: "/notifications",
 } as const;
 
 export const STATUS_LABEL: Record<TaskStatus, string> = {

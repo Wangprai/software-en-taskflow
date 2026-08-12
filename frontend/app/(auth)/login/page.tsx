@@ -53,7 +53,13 @@ export default function LoginPage() {
       subtitle="Sign in to continue to your workspaces."
       footer={
         <>
-          Don't have an account? <Link href="/register">Create one</Link>
+          Don't have an account?{" "}
+          <Link
+            href="/register"
+            className="font-medium text-primary hover:underline"
+          >
+            Create one
+          </Link>
         </>
       }
     >

@@ -43,7 +43,7 @@ export function Sidebar({
         </div>
         {!collapsed && (
           <span className="text-sm font-semibold tracking-tight text-sidebar-foreground">
-            TaskFlow
+            SE-TaskFlow
           </span>
         )}
         <button
