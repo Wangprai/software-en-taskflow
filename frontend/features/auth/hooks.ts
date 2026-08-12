@@ -5,21 +5,30 @@ import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { authApi, LoginInput, RegisterInput } from "./api";
 import { toast } from "sonner";
+import { TOKEN_STORAGE_KEY } from "@/constants";
 
 export function useLogin() {
   const { setSession } = useAuth();
   const router = useRouter();
 
   return useMutation({
-    mutationFn: (input: LoginInput) =>
-      authApi.login(input),
+    mutationFn: async (input: LoginInput) => {
+      const auth = await authApi.login(input);
+
+      localStorage.setItem(TOKEN_STORAGE_KEY, auth.accessToken);
+
+      const user = await authApi.me();
+
+      return {
+        ...auth,
+        user,
+      };
+    },
 
     onSuccess: (auth) => {
-      setSession(auth);
+      setSession(auth.accessToken, auth.user);
 
-      toast.success(
-        `Welcome back, ${auth.user.name.split(" ")[0]}`
-      );
+      toast.success(`Welcome back, ${auth.user.name.split(" ")[0]}`);
 
       router.replace("/workspaces");
     },
@@ -35,11 +44,18 @@ export function useRegister() {
   const router = useRouter();
 
   return useMutation({
-    mutationFn: (input: RegisterInput) =>
-      authApi.register(input),
+    mutationFn: async (input: RegisterInput) => {
+      const auth = await authApi.register(input);
+      const user = await authApi.me();
 
-    onSuccess: (auth) => {
-      setSession(auth);
+      return {
+        auth,
+        user,
+      };
+    },
+
+    onSuccess: ({ auth, user }) => {
+      setSession(auth.accessToken, user);
 
       toast.success("Account created");
 
@@ -52,4 +68,4 @@ export function useRegister() {
   });
 }
 
-export { useAuth}  from "@/providers/auth-provider";
+export { useAuth } from "@/providers/auth-provider";

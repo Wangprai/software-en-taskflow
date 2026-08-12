@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
-import type { Task, TaskPriority, TaskStatus, User } from "@/types";
+import type { CreateTaskInput, TaskPriority, TaskStatus, User } from "@/types";
 import {
   PRIORITY_LABEL,
   PRIORITY_ORDER,
@@ -72,7 +72,7 @@ export function TaskFormDialog({
   assignees: User[];
   defaultStatus?: TaskStatus;
   isPending?: boolean | undefined;
-  onSubmit: (input: Partial<Task>) => void;
+  onSubmit: (input: CreateTaskInput) => void;
 }) {
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskFormSchema),
@@ -101,14 +101,15 @@ export function TaskFormDialog({
   }, [open, defaultStatus]);
 
   const submit = (values: TaskFormValues) => {
-    const assignee = assignees.find((u) => u.id === values.assigneeId) ?? null;
     onSubmit({
       title: values.title,
-      description: values.description || null,
-      status: values.status as TaskStatus,
+      description: values.description || undefined,
       priority: values.priority as TaskPriority,
-      assignee,
-      dueDate: values.dueDate ? new Date(values.dueDate).toISOString() : null,
+      assigneeId:
+        values.assigneeId === UNASSIGNED ? undefined : values.assigneeId,
+      dueDate: values.dueDate
+        ? new Date(values.dueDate).toISOString()
+        : undefined,
     });
   };
 

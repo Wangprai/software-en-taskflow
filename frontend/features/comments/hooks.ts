@@ -9,37 +9,137 @@ import { toast } from "sonner";
 import { commentsApi } from "@/features/comments/api";
 import { queryKeys } from "@/lib/query-client";
 
-export const commentsQueryOptions = (taskId: string) =>
+export const commentsQueryOptions = (
+  slug: string,
+  projectId: string,
+  taskId: string,
+) =>
   queryOptions({
     queryKey: queryKeys.comments(taskId),
-    queryFn: () => commentsApi.listByTask(taskId),
+    queryFn: () =>
+      commentsApi.listByTask(slug, projectId, taskId),
   });
 
-export function useComments(taskId: string | null) {
-  return useQuery({ ...commentsQueryOptions(taskId ?? ""), enabled: Boolean(taskId) });
+export function useComments(
+  slug: string,
+  projectId: string,
+  taskId: string | null,
+) {
+  return useQuery({
+    ...commentsQueryOptions(slug, projectId, taskId ?? ""),
+    enabled: Boolean(slug && projectId && taskId),
+  });
 }
 
-export function useCreateComment(taskId: string) {
+export function useCreateComment(
+  slug: string,
+  projectId: string,
+  taskId: string,
+) {
   const qc = useQueryClient();
+
   return useMutation({
-    mutationFn: (body: string) => commentsApi.create(taskId, { body }),
+    mutationFn: (content: string) =>
+      commentsApi.create(
+        slug,
+        projectId,
+        taskId,
+        { content },
+      ),
+
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: queryKeys.comments(taskId) });
-      void qc.invalidateQueries({ queryKey: queryKeys.taskActivities(taskId) });
-      void qc.invalidateQueries({ queryKey: queryKeys.activities });
+      void qc.invalidateQueries({
+        queryKey: queryKeys.comments(taskId),
+      });
+
+      void qc.invalidateQueries({
+        queryKey: queryKeys.taskActivities(taskId),
+      });
+
+      void qc.invalidateQueries({
+        queryKey: queryKeys.activities,
+      });
+
+      toast.success("Comment added");
     },
-    onError: (e: Error) => toast.error(e.message),
+
+    onError: (e: Error) => {
+      toast.error(e.message);
+    },
   });
 }
 
-export function useDeleteComment(taskId: string) {
+export function useUpdateComment(
+  slug: string,
+  projectId: string,
+  taskId: string,
+) {
   const qc = useQueryClient();
+
   return useMutation({
-    mutationFn: (commentId: string) => commentsApi.remove(commentId),
+    mutationFn: ({
+      commentId,
+      content,
+    }: {
+      commentId: string;
+      content: string;
+    }) =>
+      commentsApi.update(
+        slug,
+        projectId,
+        taskId,
+        commentId,
+        { content },
+      ),
+
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: queryKeys.comments(taskId) });
+      void qc.invalidateQueries({
+        queryKey: queryKeys.comments(taskId),
+      });
+
+      void qc.invalidateQueries({
+        queryKey: queryKeys.taskActivities(taskId),
+      });
+
+      void qc.invalidateQueries({
+        queryKey: queryKeys.activities,
+      });
+
+      toast.success("Comment updated");
+    },
+
+    onError: (e: Error) => {
+      toast.error(e.message);
+    },
+  });
+}
+
+export function useDeleteComment(
+  slug: string,
+  projectId: string,
+  taskId: string,
+) {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (commentId: string) =>
+      commentsApi.remove(
+        slug,
+        projectId,
+        taskId,
+        commentId,
+      ),
+
+    onSuccess: () => {
+      void qc.invalidateQueries({
+        queryKey: queryKeys.comments(taskId),
+      });
+
       toast.success("Comment deleted");
     },
-    onError: (e: Error) => toast.error(e.message),
+
+    onError: (e: Error) => {
+      toast.error(e.message);
+    },
   });
 }

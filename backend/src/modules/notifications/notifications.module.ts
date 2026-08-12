@@ -14,6 +14,6 @@ import { NotificationInterface } from './interfaces/notification.interface.abstr
       useExisting: NotificationRepository,
     },
   ],
-  exports: [NotificationsService, NotificationInterface],
+  exports: [NotificationsService],
 })
 export class NotificationsModule {}

@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { Bell, LogOut, Moon, Search, Settings, Sun, User as UserIcon } from "lucide-react";
 import { useState } from "react";
 
@@ -17,6 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/features/auth/hooks";
 import { useTheme } from "@/providers/theme-provider";
+import { NotificationCenter } from "@/features/notifications/components/notification-center";
 
 export function Navbar() {
   const { user, logout } = useAuth();
@@ -40,12 +40,8 @@ export function Navbar() {
         <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
           {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
         </Button>
-        <Button variant="ghost" size="icon" asChild aria-label="Notifications">
-          <Link href="/notifications" className="relative">
-            <Bell className="size-4" />
-            <span className="absolute right-2 top-2 size-1.5 rounded-full bg-primary" />
-          </Link>
-        </Button>
+
+        <NotificationCenter />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

@@ -18,7 +18,7 @@ export class NotificationsService {
     private readonly notificationRepository: NotificationInterface,
   ) {}
 
-  // Create a  notification
+  // Create a notification
   async createNotification(
     dto: CreateNotificationDto,
   ): Promise<NotificationDetail> {
@@ -41,6 +41,7 @@ export class NotificationsService {
     return this.notificationRepository.findAllByUserId(currentUserId);
   }
 
+  // Get unread notifications
   async getUnreadNotifications(
     currentUserId: string,
   ): Promise<NotificationList> {
@@ -59,14 +60,15 @@ export class NotificationsService {
       throw new NotFoundException('Notification not found');
     }
 
+    // Check ownership
     if (notification.userId !== currentUserId) {
       throw new ForbiddenException('You can only update your own notification');
     }
 
-    return this.notificationRepository.markAsRead(notification.id);
+    return this.notificationRepository.markAsRead(notificationId);
   }
 
-  // Mark as read all notifications
+  // Mark all as read notifications
   async markAllAsRead(currentUserId: string): Promise<{ count: number }> {
     return this.notificationRepository.markAllAsRead(currentUserId);
   }
@@ -83,10 +85,11 @@ export class NotificationsService {
       throw new NotFoundException('Notification not found');
     }
 
+    // Check ownership
     if (notification.userId !== currentUserId) {
       throw new ForbiddenException('You can only delete your own notification');
     }
 
-    return this.notificationRepository.delete(notification.id);
+    return this.notificationRepository.delete(notificationId);
   }
 }

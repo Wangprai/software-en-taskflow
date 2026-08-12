@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient, queryOptions } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  queryOptions,
+} from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { projectsApi, type ProjectInput } from "@/features/projects/api";
@@ -10,15 +15,21 @@ export const projectsQueryOptions = (slug: string) =>
     queryFn: () => projectsApi.listByWorkspace(slug),
   });
 
-export const projectQueryOptions = (id: string) =>
-  queryOptions({ queryKey: queryKeys.project(id), queryFn: () => projectsApi.get(id) });
+export const projectQueryOptions = (slug: string, projectId: string) =>
+  queryOptions({
+    queryKey: queryKeys.project(projectId),
+    queryFn: () => projectsApi.get(slug, projectId),
+  });
 
 export function useProjects(slug: string) {
   return useQuery(projectsQueryOptions(slug));
 }
 
-export function useProject(id: string) {
-  return useQuery(projectQueryOptions(id));
+export function useProject(slug: string, projectId: string) {
+  return useQuery({
+    ...projectQueryOptions(slug, projectId),
+    enabled: Boolean(slug && projectId),
+  });
 }
 
 export function useCreateProject(slug: string) {
@@ -36,26 +47,49 @@ export function useCreateProject(slug: string) {
 
 export function useUpdateProject(slug: string) {
   const qc = useQueryClient();
+
   return useMutation({
-    mutationFn: ({ id, ...input }: ProjectInput & { id: string }) => projectsApi.update(id, input),
+    mutationFn: ({ id, ...input }: ProjectInput & { id: string }) =>
+      projectsApi.update(slug, id, input),
+
     onSuccess: (p) => {
-      void qc.invalidateQueries({ queryKey: queryKeys.projects(slug) });
-      void qc.invalidateQueries({ queryKey: queryKeys.project(p.id) });
+      void qc.invalidateQueries({
+        queryKey: queryKeys.projects(slug),
+      });
+
+      void qc.invalidateQueries({
+        queryKey: queryKeys.project(p.id),
+      });
+
       toast.success("Project updated");
     },
-    onError: (e: Error) => toast.error(e.message),
+
+    onError: (e: Error) => {
+      toast.error(e.message);
+    },
   });
 }
 
 export function useDeleteProject(slug: string) {
   const qc = useQueryClient();
+
   return useMutation({
-    mutationFn: (id: string) => projectsApi.remove(id),
+    mutationFn: (projectId: string) => projectsApi.remove(slug, projectId),
+
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: queryKeys.projects(slug) });
-      void qc.invalidateQueries({ queryKey: queryKeys.workspaces });
+      void qc.invalidateQueries({
+        queryKey: queryKeys.projects(slug),
+      });
+
+      void qc.invalidateQueries({
+        queryKey: queryKeys.workspaces,
+      });
+
       toast.success("Project deleted");
     },
-    onError: (e: Error) => toast.error(e.message),
+
+    onError: (e: Error) => {
+      toast.error(e.message);
+    },
   });
 }

@@ -1,17 +1,18 @@
 import {
-  AtSign,
   Bell,
-  CalendarClock,
   CheckCheck,
   CheckCircle2,
-  GitPullRequest,
   MessageSquare,
   UserPlus,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   useMarkAllNotificationsRead,
   useMarkNotificationRead,
@@ -21,29 +22,33 @@ import { formatRelative } from "@/lib/format";
 import type { Notification, NotificationType } from "@/types";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { getNotificationTitle } from "../utils/notification-display";
 
 export const NOTIFICATION_ICONS: Record<NotificationType, LucideIcon> = {
-  MENTION: AtSign,
-  ASSIGNED: UserPlus,
-  REVIEW: GitPullRequest,
-  COMMENT: MessageSquare,
-  COMPLETED: CheckCircle2,
-  DUE: CalendarClock,
+  TASK_ASSIGNED: UserPlus,
+  COMMENT_ADDED: MessageSquare,
+  STATUS_CHANGED: CheckCircle2,
 };
 
 export function NotificationCenter() {
   const { data: notifications } = useNotifications();
   const markRead = useMarkNotificationRead();
   const markAll = useMarkAllNotificationsRead();
+
   const items = notifications ?? [];
   const unread = items.filter((n) => !n.read).length;
 
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label={`Notifications (${unread} unread)`}>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label={`Notifications (${unread} unread)`}
+        >
           <span className="relative">
             <Bell className="size-4" />
+
             {unread > 0 && (
               <span className="absolute -right-1.5 -top-1.5 flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[9px] font-bold leading-4 text-primary-foreground">
                 {unread}
@@ -52,9 +57,11 @@ export function NotificationCenter() {
           </span>
         </Button>
       </PopoverTrigger>
+
       <PopoverContent align="end" className="w-[22rem] p-0">
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <p className="text-sm font-semibold">Notifications</p>
+
           <Button
             variant="ghost"
             size="sm"
@@ -62,7 +69,8 @@ export function NotificationCenter() {
             disabled={unread === 0 || markAll.isPending}
             onClick={() => markAll.mutate()}
           >
-            <CheckCheck className="size-3.5" /> Mark all read
+            <CheckCheck className="size-3.5" />
+            Mark all read
           </Button>
         </div>
 
@@ -72,13 +80,15 @@ export function NotificationCenter() {
               You&apos;re all caught up.
             </p>
           ) : (
-            items.slice(0, 8).map((item) => (
-              <NotificationRow
-                key={item.id}
-                item={item}
-                onRead={() => markRead.mutate({ id: item.id })}
-              />
-            ))
+            items
+              .slice(0, 8)
+              .map((item) => (
+                <NotificationRow
+                  key={item.id}
+                  item={item}
+                  onRead={() => markRead.mutate(item.id)}
+                />
+              ))
           )}
         </div>
 
@@ -99,7 +109,9 @@ export function NotificationRow({
   item: Notification;
   onRead: () => void;
 }) {
+  const title = getNotificationTitle(item);
   const Icon = NOTIFICATION_ICONS[item.type] ?? Bell;
+  
   return (
     <button
       type="button"
@@ -114,10 +126,14 @@ export function NotificationRow({
       </span>
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-2">
-          <span className="truncate text-sm font-medium">{item.title}</span>
-          {!item.read && <span className="size-1.5 shrink-0 rounded-full bg-primary" />}
+          <span className="truncate text-sm font-medium">{title}</span>
+          {!item.read && (
+            <span className="size-1.5 shrink-0 rounded-full bg-primary" />
+          )}
         </span>
-        <span className="line-clamp-2 block text-sm text-muted-foreground">{item.body}</span>
+        <span className="line-clamp-2 block text-sm text-muted-foreground">
+          {item.body}
+        </span>
         <span className="mt-0.5 block text-xs text-muted-foreground">
           {formatRelative(item.createdAt)}
         </span>

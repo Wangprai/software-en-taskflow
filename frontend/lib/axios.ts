@@ -1,11 +1,9 @@
 import { API_BASE_URL, TOKEN_STORAGE_KEY } from "@/constants";
 import axios, { type AxiosError } from "axios";
-import { mockAdapter } from "./mock/adapter";
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
   headers: { "Content-Type": "application/json" },
-  adapter: mockAdapter,
 });
 
 api.interceptors.request.use((config) => {

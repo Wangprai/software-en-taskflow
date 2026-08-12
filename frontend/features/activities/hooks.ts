@@ -6,27 +6,36 @@ import { queryKeys } from "@/lib/query-client";
 export const activityFeedQueryOptions = () =>
   queryOptions({ queryKey: queryKeys.activities, queryFn: activitiesApi.list });
 
-export const taskActivitiesQueryOptions = (taskId: string) =>
+export const taskActivitiesQueryOptions = (
+  slug: string,
+  projectId: string,
+  taskId: string,
+) =>
   queryOptions({
     queryKey: queryKeys.taskActivities(taskId),
-    queryFn: () => activitiesApi.listByTask(taskId),
+    queryFn: () => activitiesApi.listByTask(slug, projectId, taskId),
   });
 
 export function useActivityFeed() {
   return useQuery(activityFeedQueryOptions());
 }
 
-export function useTaskActivities(taskId: string | null) {
+export function useTaskActivities(
+  slug: string,
+  projectId: string,
+  taskId: string | null,
+) {
   return useQuery({
-    ...taskActivitiesQueryOptions(taskId ?? ""),
-    enabled: Boolean(taskId),
+    ...taskActivitiesQueryOptions(slug, projectId, taskId ?? ""),
+    enabled: Boolean(slug && projectId && taskId),
   });
 }
 
-export function useProjectActivities(projectId: string) {
+export function useProjectActivities(slug: string, projectId: string) {
   return useQuery({
     queryKey: queryKeys.projectActivities(projectId),
-    queryFn: () => activitiesApi.listByProject(projectId),
+    queryFn: () => activitiesApi.listByProject(slug, projectId),
+    enabled: Boolean(slug && projectId),
   });
 }
 

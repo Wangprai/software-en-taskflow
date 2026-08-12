@@ -46,7 +46,7 @@ export default function NotificationsPage() {
           <NotificationList
             items={items}
             isLoading={isLoading}
-            onRead={(id) => markRead.mutate({ id })}
+            onRead={(id) => markRead.mutate(id)}
             emptyTitle="No notifications"
             emptyDescription="When teammates mention you or move your tasks, it shows up here."
           />
@@ -55,7 +55,7 @@ export default function NotificationsPage() {
           <NotificationList
             items={unread}
             isLoading={isLoading}
-            onRead={(id) => markRead.mutate({ id })}
+            onRead={(id) => markRead.mutate(id)}
             emptyTitle="You're all caught up"
             emptyDescription="Nothing unread right now — nice work."
           />
@@ -79,15 +79,27 @@ function NotificationList({
   emptyDescription: string;
 }) {
   if (isLoading) {
-    return <p className="text-sm text-muted-foreground">Loading notifications…</p>;
+    return (
+      <p className="text-sm text-muted-foreground">Loading notifications…</p>
+    );
   }
   if (items.length === 0) {
-    return <EmptyState icon={BellOff} title={emptyTitle} description={emptyDescription} />;
+    return (
+      <EmptyState
+        icon={BellOff}
+        title={emptyTitle}
+        description={emptyDescription}
+      />
+    );
   }
   return (
     <Card className="gap-0 divide-y divide-border overflow-hidden p-0">
       {items.map((item) => (
-        <NotificationRow key={item.id} item={item} onRead={() => onRead(item.id)} />
+        <NotificationRow
+          key={item.id}
+          item={item}
+          onRead={() => onRead(item.id)}
+        />
       ))}
     </Card>
   );

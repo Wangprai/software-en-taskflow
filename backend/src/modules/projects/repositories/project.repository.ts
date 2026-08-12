@@ -1,7 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { ProjectInterface } from '../interfaces/project.interface.abstract';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { ProjectDetail, ProjectList } from '../types/project.type';
+import {
+  ProjectDetail,
+  ProjectList,
+  ProjectWithCount,
+} from '../types/project.type';
 import { Prisma } from '@prisma/client';
 import { projectInclude } from '../types/project.include';
 
@@ -11,15 +15,17 @@ export class ProjectRepository implements ProjectInterface {
 
   // Create a new project
   async create(data: Prisma.ProjectCreateInput): Promise<ProjectDetail> {
-    return this.prisma.project.create({
+    const project = await this.prisma.project.create({
       data,
       include: projectInclude,
     });
+
+    return this.toProjectDetail(project);
   }
 
   // Find all projects in a workspace
   async findAllByWorkspaceId(workspaceId: string): Promise<ProjectList> {
-    return this.prisma.project.findMany({
+    const projects = await this.prisma.project.findMany({
       where: {
         workspaceId,
       },
@@ -28,16 +34,18 @@ export class ProjectRepository implements ProjectInterface {
         createdAt: 'desc',
       },
     });
+
+    return projects.map((project) => this.toProjectDetail(project));
   }
 
   // Find a project by ID
   async findById(id: string): Promise<ProjectDetail | null> {
-    return this.prisma.project.findUnique({
-      where: {
-        id,
-      },
+    const project = await this.prisma.project.findUnique({
+      where: { id },
       include: projectInclude,
     });
+
+    return project ? this.toProjectDetail(project) : null;
   }
 
   // Update a project
@@ -45,22 +53,35 @@ export class ProjectRepository implements ProjectInterface {
     id: string,
     data: Prisma.ProjectUpdateInput,
   ): Promise<ProjectDetail> {
-    return this.prisma.project.update({
+    const project = await this.prisma.project.update({
       where: {
         id,
       },
       data,
       include: projectInclude,
     });
+
+    return this.toProjectDetail(project);
   }
 
   // Delete a project
   async delete(id: string): Promise<ProjectDetail> {
-    return this.prisma.project.delete({
+    const project = await this.prisma.project.delete({
       where: {
         id,
       },
       include: projectInclude,
     });
+
+    return this.toProjectDetail(project);
+  }
+
+  private toProjectDetail(project: ProjectWithCount): ProjectDetail {
+    const { _count, ...data } = project;
+
+    return {
+      ...data,
+      taskCount: _count.tasks,
+    };
   }
 }

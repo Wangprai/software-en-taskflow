@@ -17,17 +17,19 @@ const COLUMNS: Array<{ status: TaskStatus; label: string; dot: string }> = [
 ];
 
 export function KanbanBoard({
+  slug,
   projectId,
   tasks,
   onOpenTask,
   onAddTask,
 }: {
+  slug: string,
   projectId: string;
   tasks: Task[];
   onOpenTask: (task: Task) => void;
   onAddTask?: (status: TaskStatus) => void;
 }) {
-  const move = useMoveTask(projectId);
+  const move = useMoveTask(slug, projectId);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [overColumn, setOverColumn] = useState<TaskStatus | null>(null);
 

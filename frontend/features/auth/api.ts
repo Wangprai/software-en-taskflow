@@ -25,4 +25,3 @@ export const authApi = {
 
   me: () => api.get<User>("/auth/me").then((response) => response.data),
 };
-

@@ -15,24 +15,28 @@ import { useProjectActivities } from "@/features/activities/hooks";
 import { useCreateTask, useTasks } from "@/features/tasks/hooks";
 import { useProject } from "@/features/projects/hooks";
 import { useMembers } from "@/features/workspace-members/hooks";
-import { useWorkspaces } from "@/features/workspaces/hooks";
 import type { Task, TaskStatus } from "@/types";
 import { useParams } from "next/navigation";
 
 export default function ProjectBoardPage() {
-  const { id } = useParams<{ id: string }>();
-  const { data: project } = useProject(id);
-  const { data: tasks, isLoading } = useTasks(id);
-  const { data: workspaces } = useWorkspaces();
-  const slug = workspaces?.find((w) => w.id === project?.workspaceId)?.slug ?? "";
+  const { slug, projectId } = useParams<{
+    slug: string;
+    projectId: string;
+  }>();
+
+  const { data: project } = useProject(slug, projectId);
+  const { data: tasks, isLoading } = useTasks(slug, projectId);
   const { data: members } = useMembers(slug);
-  const { data: activities } = useProjectActivities(id);
-  const createTask = useCreateTask(id);
+  const { data: activities } = useProjectActivities(slug, projectId);
+  const createTask = useCreateTask(slug, projectId);
 
   const [openTaskId, setOpenTaskId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [createStatus, setCreateStatus] = useState<TaskStatus>("TODO");
-  const assignees = useMemo(() => (members ?? []).map((m) => m.user), [members]);
+  const assignees = useMemo(
+    () => (members ?? []).map((m) => m.user),
+    [members],
+  );
   const activeTask = (tasks ?? []).find((t) => t.id === openTaskId) ?? null;
 
   const addTask = (status: TaskStatus = "TODO") => {
@@ -44,7 +48,9 @@ export default function ProjectBoardPage() {
     <div className="space-y-6">
       <PageHeader
         title={project?.name ?? "Project"}
-        description={project?.description || "Drag cards between columns to update status."}
+        description={
+          project?.description || "Drag cards between columns to update status."
+        }
         actions={
           <>
             <Button onClick={() => addTask("TODO")}>
@@ -69,7 +75,8 @@ export default function ProjectBoardPage() {
         />
       ) : (
         <KanbanBoard
-          projectId={id}
+          slug={slug}
+          projectId={projectId}
           tasks={tasks}
           onOpenTask={(task: Task) => setOpenTaskId(task.id)}
           onAddTask={addTask}
@@ -82,7 +89,9 @@ export default function ProjectBoardPage() {
         assignees={assignees}
         defaultStatus={createStatus}
         isPending={createTask.isPending}
-        onSubmit={(input) => createTask.mutate(input, { onSuccess: () => setCreateOpen(false) })}
+        onSubmit={(input) =>
+          createTask.mutate(input, { onSuccess: () => setCreateOpen(false) })
+        }
       />
 
       <Card className="p-5">
@@ -95,7 +104,8 @@ export default function ProjectBoardPage() {
 
       <TaskDetailModal
         task={activeTask}
-        projectId={id}
+        slug={slug}
+        projectId={projectId}
         assignees={assignees}
         open={Boolean(activeTask)}
         onOpenChange={(next) => !next && setOpenTaskId(null)}

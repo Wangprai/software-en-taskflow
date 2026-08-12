@@ -11,8 +11,13 @@ export interface User {
 }
 
 export interface AuthResponse {
-  token: string;
-  user: User;
+  accessToken: string;
+  refreshToken: string;
+}
+
+export interface ApiError {
+  message: string;
+  status?: number;
 }
 
 export interface Workspace {
@@ -62,14 +67,43 @@ export interface Task {
   dueDate: string | null;
   createdAt: string;
   updatedAt: string;
+
+  project: {
+    id: string;
+    name: string;
+    description: string | null;
+    ownerId: string;
+    workspaceId: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+}
+
+export interface CreateTaskInput {
+  title: string;
+  description?: string;
+  priority?: TaskPriority;
+  assigneeId?: string;
+  dueDate?: string;
+}
+
+export interface UpdateTaskInput {
+  title?: string;
+  description?: string;
+  status?: TaskStatus;
+  priority?: TaskPriority;
+  assigneeId?: string | null;
+  dueDate?: string;
 }
 
 export interface Comment {
   id: string;
   content: string;
   taskId: string;
-  author: User;
+  userId: string;
+  user: User;
   createdAt: string;
+  updatedAt: string;
 }
 
 export type ActivityType =
@@ -77,7 +111,7 @@ export type ActivityType =
   | "TASK_UPDATED"
   | "TASK_ASSIGNED"
   | "STATUS_CHANGED"
-  | "COMMENT_CREATED"
+  | "COMMENT_CREATED";
 
 export interface Activity {
   id: string;
@@ -90,7 +124,10 @@ export interface Activity {
   createdAt: string;
 }
 
-export type NotificationType = "MENTION" | "ASSIGNED" | "REVIEW" | "COMMENT" | "COMPLETED" | "DUE";
+export type NotificationType =
+  | "TASK_ASSIGNED"
+  | "COMMENT_ADDED"
+  | "STATUS_CHANGED";
 
 export interface Notification {
   id: string;

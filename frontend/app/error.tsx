@@ -1,6 +1,6 @@
 "use client";
 
-import { Link } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 export default function Error({ reset }: { reset: () => void }) {

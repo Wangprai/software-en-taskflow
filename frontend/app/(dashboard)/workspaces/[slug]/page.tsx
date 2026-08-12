@@ -22,7 +22,11 @@ export default function WorkspaceDetailPage() {
   const { data: members } = useMembers(slug);
   const { data: projects } = useProjects(slug);
 
-  const totalTasks = (projects ?? []).reduce((sum, p) => sum + p.taskCount, 0);
+  const totalTasks = (projects ?? []).reduce(
+    (sum, p) => sum + (p.taskCount ?? 0),
+    0,
+  );
+
   const admins = (members ?? []).filter((m) => m.role === "ADMIN").length;
 
   return (
@@ -89,7 +93,7 @@ export default function WorkspaceDetailPage() {
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
               {projects.slice(0, 4).map((project) => (
-                <ProjectCard key={project.id} project={project} />
+                <ProjectCard key={project.id} project={project} slug={slug} />
               ))}
             </div>
           )}

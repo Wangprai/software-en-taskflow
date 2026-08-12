@@ -29,10 +29,24 @@ import { useTaskActivities } from "@/features/activities/hooks";
 import { useDeleteTask, useUpdateTask } from "@/features/tasks/hooks";
 import { formatDate, formatRelative, isOverdue } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import type { Task, TaskPriority, TaskStatus, User } from "@/types";
-import { PRIORITY_LABEL, PRIORITY_ORDER, PRIORITY_STYLES, STATUS_DOT, STATUS_LABEL, STATUS_ORDER } from "@/constants";
+import type {
+  Task,
+  TaskPriority,
+  TaskStatus,
+  UpdateTaskInput,
+  User,
+} from "@/types";
+import {
+  PRIORITY_LABEL,
+  PRIORITY_ORDER,
+  PRIORITY_STYLES,
+  STATUS_DOT,
+  STATUS_LABEL,
+  STATUS_ORDER,
+} from "@/constants";
 
 export function TaskDetailModal({
+  slug,
   task,
   projectId,
   assignees,
@@ -40,14 +54,19 @@ export function TaskDetailModal({
   onOpenChange,
 }: {
   task: Task | null;
+  slug: string;
   projectId: string;
   assignees: User[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const update = useUpdateTask(projectId);
-  const remove = useDeleteTask(projectId);
-  const { data: activities } = useTaskActivities(task?.id ?? null);
+  const update = useUpdateTask(slug, projectId);
+  const remove = useDeleteTask(slug, projectId);
+  const { data: activities } = useTaskActivities(
+    slug,
+    projectId,
+    task?.id ?? null,
+  );
 
   const [title, setTitle] = useState(task?.title ?? "");
   const [description, setDescription] = useState(task?.description ?? "");
@@ -59,18 +78,23 @@ export function TaskDetailModal({
 
   if (!task) return null;
 
-  const patch = (input: Partial<Task>) => update.mutate({ taskId: task.id, ...input });
+  const patch = (input: UpdateTaskInput) =>
+    update.mutate({ taskId: task.id, ...input });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[92vh] gap-0 overflow-y-auto p-0 sm:max-w-3xl">
         <DialogHeader className="space-y-1 border-b border-border p-5 pr-12 text-left">
           <div className="flex items-center gap-2">
-            <Badge className={cn("text-[10px]", PRIORITY_STYLES[task.priority])}>
+            <Badge
+              className={cn("text-[10px]", PRIORITY_STYLES[task.priority])}
+            >
               {PRIORITY_LABEL[task.priority]}
             </Badge>
             <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-              <span className={cn("size-2 rounded-full", STATUS_DOT[task.status])} />
+              <span
+                className={cn("size-2 rounded-full", STATUS_DOT[task.status])}
+              />
               {STATUS_LABEL[task.status]}
             </span>
           </div>
@@ -87,7 +111,8 @@ export function TaskDetailModal({
             className="h-auto border-0 px-0 !text-lg font-semibold shadow-none focus-visible:ring-0"
           />
           <DialogDescription className="text-xs">
-            Created {formatRelative(task.createdAt)} · updated {formatRelative(task.updatedAt)}
+            Created {formatRelative(task.createdAt)} · updated{" "}
+            {formatRelative(task.updatedAt)}
           </DialogDescription>
         </DialogHeader>
 
@@ -101,7 +126,8 @@ export function TaskDetailModal({
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 onBlur={() => {
-                  if (description !== (task.description ?? "")) patch({ description });
+                  if (description !== (task.description ?? ""))
+                    patch({ description });
                 }}
                 placeholder="Add a more detailed description…"
                 className="min-h-24 resize-none"
@@ -115,7 +141,11 @@ export function TaskDetailModal({
                 <TabsTrigger value="activity">Activity</TabsTrigger>
               </TabsList>
               <TabsContent value="comments" className="pt-4">
-                <CommentSection taskId={task.id} />
+                <CommentSection
+                  slug={slug}
+                  projectId={projectId}
+                  taskId={task.id}
+                />
               </TabsContent>
               <TabsContent value="activity" className="pt-4">
                 <ActivityTimeline
@@ -130,7 +160,9 @@ export function TaskDetailModal({
             <Field label="Status">
               <Select
                 value={task.status}
-                onValueChange={(value) => patch({ status: value as TaskStatus })}
+                onValueChange={(value) =>
+                  patch({ status: value as TaskStatus })
+                }
               >
                 <SelectTrigger className="w-full" aria-label="Status">
                   <SelectValue />
@@ -148,7 +180,9 @@ export function TaskDetailModal({
             <Field label="Priority">
               <Select
                 value={task.priority}
-                onValueChange={(value) => patch({ priority: value as TaskPriority })}
+                onValueChange={(value) =>
+                  patch({ priority: value as TaskPriority })
+                }
               >
                 <SelectTrigger className="w-full" aria-label="Priority">
                   <SelectValue />
@@ -167,7 +201,7 @@ export function TaskDetailModal({
               <Select
                 value={task.assignee?.id ?? "unassigned"}
                 onValueChange={(value) =>
-                  patch({ assignee: assignees.find((u) => u.id === value) ?? null })
+                  patch({ assigneeId: value === "unassigned" ? null : value })
                 }
               >
                 <SelectTrigger className="w-full" aria-label="Assignee">
@@ -195,7 +229,9 @@ export function TaskDetailModal({
               <span
                 className={cn(
                   "inline-flex items-center gap-1.5 text-sm",
-                  isOverdue(task.dueDate) && task.status !== "DONE" && "text-destructive",
+                  isOverdue(task.dueDate) &&
+                    task.status !== "DONE" &&
+                    "text-destructive",
                 )}
               >
                 <CalendarDays className="size-3.5" />
@@ -210,7 +246,9 @@ export function TaskDetailModal({
               size="sm"
               className="w-full justify-start text-destructive hover:text-destructive"
               disabled={remove.isPending}
-              onClick={() => remove.mutate(task.id, { onSuccess: () => onOpenChange(false) })}
+              onClick={() =>
+                remove.mutate(task.id, { onSuccess: () => onOpenChange(false) })
+              }
             >
               <Trash2 className="size-4" /> Delete task
             </Button>
@@ -221,10 +259,18 @@ export function TaskDetailModal({
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="space-y-1.5">
-      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        {label}
+      </p>
       {children}
     </div>
   );

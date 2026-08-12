@@ -23,10 +23,12 @@ import Link from "next/link";
 
 export function ProjectCard({
   project,
+  slug,
   onEdit,
   onDelete,
 }: {
   project: Project;
+  slug: string;
   onEdit?: (() => void) | undefined;
   onDelete?: (() => void) | undefined;
 }) {
@@ -38,17 +40,21 @@ export function ProjectCard({
             <Badge variant="secondary" className="font-mono text-[10px]">
               {project.key}
             </Badge>
+
             <span className="text-xs text-muted-foreground">
-              {project.taskCount} {project.taskCount === 1 ? "task" : "tasks"}
+              {project.taskCount}
+              {project.taskCount === 1 ? "task" : "tasks"}
             </span>
           </div>
+
           <Link
-            href={`/projects/${project.id}`}
+            href={`/workspaces/${slug}/projects/${project.id}`}
             className="mt-2 block truncate text-base font-semibold hover:text-primary"
           >
             {project.name}
           </Link>
         </div>
+
         {(onEdit || onDelete) && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -61,6 +67,7 @@ export function ProjectCard({
                 <MoreHorizontal className="size-4" />
               </Button>
             </DropdownMenuTrigger>
+
             <DropdownMenuContent align="end">
               {onEdit && (
                 <DropdownMenuItem onClick={onEdit}>
@@ -86,8 +93,10 @@ export function ProjectCard({
 
       <div className="mt-5 flex items-center gap-4 border-t border-border pt-4 text-xs text-muted-foreground">
         <span className="inline-flex items-center gap-1.5">
-          <CalendarDays className="size-3.5" /> {formatDate(project.createdAt)}
+          <CalendarDays className="size-3.5" />
+          {formatDate(project.createdAt)}
         </span>
+
         <span className="inline-flex items-center gap-1.5">
           <ListChecks className="size-3.5" /> {project.taskCount} tasks
         </span>

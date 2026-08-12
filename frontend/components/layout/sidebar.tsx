@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Bell,
-  FolderKanban,
+  LayoutDashboard,
   LayoutGrid,
   PanelLeftClose,
   PanelLeftOpen,
@@ -15,8 +15,8 @@ import { useWorkspaces } from "@/features/workspaces/hooks";
 import { cn } from "@/lib/utils";
 
 const NAV = [
+  { label: "Dashboard", to: "/", icon: LayoutDashboard },
   { label: "Workspaces", to: "/workspaces", icon: LayoutGrid },
-  { label: "Projects", to: "/projects", icon: FolderKanban },
   { label: "Notifications", to: "/notifications", icon: Bell },
 ] as const;
 

@@ -4,7 +4,8 @@ export const TOKEN_STORAGE_KEY = "taskflow.token";
 export const USER_STORAGE_KEY = "taskflow.user";
 export const THEME_STORAGE_KEY = "taskflow.theme";
 
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "/api";
+export const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
 export const ROUTES = {
   login: "/login",
@@ -39,5 +40,15 @@ export const PRIORITY_LABEL: Record<TaskPriority, string> = {
   URGENT: "Urgent",
 };
 
-export const STATUS_ORDER: TaskStatus[] = ["TODO", "IN_PROGRESS", "REVIEW", "DONE"];
-export const PRIORITY_ORDER: TaskPriority[] = ["LOW", "MEDIUM", "HIGH", "URGENT"];
+export const STATUS_ORDER: TaskStatus[] = [
+  "TODO",
+  "IN_PROGRESS",
+  "REVIEW",
+  "DONE",
+];
+export const PRIORITY_ORDER: TaskPriority[] = [
+  "LOW",
+  "MEDIUM",
+  "HIGH",
+  "URGENT",
+];

@@ -62,7 +62,7 @@ export function AddMemberDialog({
 
   const onSubmit = (values: Values) =>
     addMember.mutate(
-      { email: values.email, role: values.role, name: values.name ?? "" },
+      { email: values.email, role: values.role },
       { onSuccess: () => onOpenChange(false) },
     );
 
@@ -85,19 +85,6 @@ export function AddMemberDialog({
                   <FormLabel>Email</FormLabel>
                   <FormControl>
                     <Input type="email" placeholder="teammate@company.com" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Full name (optional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Jamie Chen" {...field} value={field.value ?? ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
