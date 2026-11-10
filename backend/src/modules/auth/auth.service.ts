@@ -13,12 +13,34 @@ export class AuthService {
   ) {}
 
   // Register a new user
+
   async register(dto: RegisterDto) {
     const user = await this.usersService.createUser(dto);
 
-    // Return the user data without the password
-    const { password, refreshToken, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+    const payload: JwtPayload = {
+      sub: user.id,
+      name: user.name,
+      email: user.email,
+    };
+
+    const accessToken = this.jwtService.sign(payload, {
+      expiresIn: process.env.JWT_EXPIRE_IN as any,
+    });
+
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_REFRESH_SECRET!,
+      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN as any,
+    });
+
+    await this.usersService.updateRefreshToken(user.id, refreshToken);
+
+    const { password, refreshToken: _, ...userWithoutPassword } = user;
+
+    return {
+      accessToken,
+      refreshToken,
+      user: userWithoutPassword,
+    };
   }
 
   // Authenticate a user and generate a JWT token

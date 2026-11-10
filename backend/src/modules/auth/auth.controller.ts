@@ -27,8 +27,8 @@ export class AuthController {
   // Endpoint for user registration
   @Post('register')
   async register(@Body() registerDto: RegisterDto) {
-    const user = await this.authService.register(registerDto);
-    return { message: 'User registered successfully', user };
+    const auth = await this.authService.register(registerDto);
+    return { message: 'auth registered successfully', ...auth };
   }
 
   // Endpoint for user login

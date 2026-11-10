@@ -15,6 +15,11 @@ export interface AuthResponse {
   refreshToken: string;
 }
 
+export type RegisterResponse = AuthResponse & {
+  message: string;
+  user: User;
+};
+
 export interface ApiError {
   message: string;
   status?: number;

@@ -1,5 +1,5 @@
 import { api } from "@/lib/axios";
-import { AuthResponse, User } from "@/types";
+import { AuthResponse, RegisterResponse, User } from "@/types";
 
 export interface LoginInput {
   email: string;
@@ -20,7 +20,7 @@ export const authApi = {
 
   register: (input: RegisterInput) =>
     api
-      .post<AuthResponse>("/auth/register", input)
+      .post<RegisterResponse>("/auth/register", input)
       .then((response) => response.data),
 
   me: () => api.get<User>("/auth/me").then((response) => response.data),

@@ -45,19 +45,13 @@ export function useRegister() {
 
   return useMutation({
     mutationFn: async (input: RegisterInput) => {
-      const auth = await authApi.register(input);
-      const user = await authApi.me();
-
-      return {
-        auth,
-        user,
-      };
+      return authApi.register(input);
     },
 
-    onSuccess: ({ auth, user }) => {
-      setSession(auth.accessToken, user);
+    onSuccess: (data) => {
+      setSession(data.accessToken, data.user);
 
-      toast.success("Account created");
+      toast.success(`Welcome, ${data.user.name.split(" ")[0]}`);
 
       router.replace("/workspaces");
     },
