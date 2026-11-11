@@ -40,8 +40,8 @@ export function useCreateWorkspace() {
 export function useUpdateWorkspace() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ slug, ...input }: WorkspaceInput & { slug: string }) =>
-      workspacesApi.update(slug, input),
+    mutationFn: ({ id, ...input }: WorkspaceInput & { id: string }) =>
+      workspacesApi.update(id, input),
     onSuccess: (w) => {
       void qc.invalidateQueries({ queryKey: queryKeys.workspaces });
       void qc.invalidateQueries({ queryKey: queryKeys.workspace(w.slug) });
@@ -54,7 +54,7 @@ export function useUpdateWorkspace() {
 export function useDeleteWorkspace() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (slug: string) => workspacesApi.remove(slug),
+    mutationFn: (id: string) => workspacesApi.remove(id),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: queryKeys.workspaces });
       toast.success("Workspace deleted");

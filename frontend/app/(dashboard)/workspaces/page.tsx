@@ -35,7 +35,7 @@ export default function WorkspacesPage() {
   const onUpdate = (values: EntityValues) => {
     if (!editing) return;
     updateWorkspace.mutate(
-      { slug: editing.slug, ...values },
+      { id: editing.id, ...values },
       { onSuccess: () => setEditing(null) },
     );
   };
@@ -115,7 +115,7 @@ export default function WorkspacesPage() {
         title={`Delete “${deleting?.name}”?`}
         description="This permanently removes the workspace along with its projects and tasks."
         onConfirm={() => {
-          if (deleting) deleteWorkspace.mutate(deleting.slug);
+          if (deleting) deleteWorkspace.mutate(deleting.id);
           setDeleting(null);
         }}
       />
