@@ -90,6 +90,7 @@ export interface CreateTaskInput {
   priority?: TaskPriority;
   assigneeId?: string;
   dueDate?: string;
+  status?: TaskStatus
 }
 
 export interface UpdateTaskInput {

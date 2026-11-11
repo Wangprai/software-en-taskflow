@@ -104,6 +104,7 @@ export function TaskFormDialog({
     onSubmit({
       title: values.title,
       description: values.description || undefined,
+      status: values.status,
       priority: values.priority as TaskPriority,
       assigneeId:
         values.assigneeId === UNASSIGNED ? undefined : values.assigneeId,

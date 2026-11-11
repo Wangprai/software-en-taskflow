@@ -71,6 +71,7 @@ export class TasksService {
       title: dto.title,
       description: dto.description,
       priority: dto.priority,
+      status: dto.status,
       dueDate: dto.dueDate ? new Date(dto.dueDate) : undefined,
 
       position: lastPosition + 1,

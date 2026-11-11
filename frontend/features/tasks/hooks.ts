@@ -24,9 +24,6 @@ export const tasksQueryOptions = (
       tasksApi.listByProject(slug, projectId),
   });
 
-// export const allTasksQueryOptions = () =>
-//   queryOptions({ queryKey: queryKeys.allTasks, queryFn: tasksApi.listAll });
-
 export function useTasks(
   slug: string,
   projectId: string,
@@ -34,22 +31,6 @@ export function useTasks(
   return useQuery({
     ...tasksQueryOptions(slug, projectId),
     enabled: Boolean(slug && projectId),
-  });
-}
-
-// export function useAllTasks() {
-//   return useQuery(allTasksQueryOptions());
-// }
-
-function invalidateTaskViews(
-  qc: ReturnType<typeof useQueryClient>,
-  projectId: string,
-) {
-  void qc.invalidateQueries({ queryKey: queryKeys.tasks(projectId) });
-  void qc.invalidateQueries({ queryKey: queryKeys.allTasks });
-  void qc.invalidateQueries({ queryKey: queryKeys.activities });
-  void qc.invalidateQueries({
-    queryKey: queryKeys.projectActivities(projectId),
   });
 }
 
