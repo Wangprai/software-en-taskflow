@@ -23,6 +23,23 @@ export class ActivityRepository implements ActivityInterface {
     return this.toActivityDetail(activity);
   }
 
+  // Find all activities by project ID
+  async findAllByProjectId(projectId: string): Promise<ActivityList> {
+    const activities = await this.prisma.activity.findMany({
+      where: {
+        task: {
+          projectId,
+        },
+      },
+      include: activityInclude,
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return activities.map((activity) => this.toActivityDetail(activity));
+  }
+
   // Find all activities by task ID
   async findAllByTaskId(taskId: string): Promise<ActivityList> {
     const activities = await this.prisma.activity.findMany({

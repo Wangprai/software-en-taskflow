@@ -9,14 +9,15 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { WorkspaceAccessService } from '../workspaces/workspace-access.service';
 import { ProjectDetail, ProjectList } from './types/project.type';
+import { ActivitiesService } from '../activities/activities.service';
 
 @Injectable()
 export class ProjectsService {
   constructor(
     @Inject(ProjectInterface)
     private readonly projectRepository: ProjectInterface,
-
     private readonly workspaceAccessService: WorkspaceAccessService,
+    private readonly activitiesService: ActivitiesService,
   ) {}
 
   // Create project in workspace
@@ -61,7 +62,11 @@ export class ProjectsService {
   }
 
   // get project detail
-  async getProjectById(slug: string, projectId: string, currentUserId: string): Promise<ProjectDetail> {
+  async getProjectById(
+    slug: string,
+    projectId: string,
+    currentUserId: string,
+  ): Promise<ProjectDetail> {
     const { project } = await this.validateProjectAccess(
       slug,
       projectId,
@@ -123,6 +128,20 @@ export class ProjectsService {
     }
 
     return this.projectRepository.delete(projectId);
+  }
+
+  async getProjectActivities(
+    slug: string,
+    projectId: string,
+    currentUserId: string,
+  ) {
+    const { project } = await this.validateProjectAccess(
+      slug,
+      projectId,
+      currentUserId,
+    );
+
+    return this.activitiesService.getActivitiesByProjectId(project.id);
   }
 
   // Helper function for validate project access

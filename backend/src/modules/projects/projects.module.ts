@@ -4,9 +4,10 @@ import { ProjectsController } from './projects.controller';
 import { ProjectsService } from './projects.service';
 import { ProjectRepository } from './repositories/project.repository';
 import { ProjectInterface } from './interfaces/project.interface.abstract';
+import { ActivitiesModule } from '../activities/activities.module';
 
 @Module({
-  imports: [WorkspacesModule],
+  imports: [WorkspacesModule, ActivitiesModule],
   controllers: [ProjectsController],
   providers: [
     ProjectsService,

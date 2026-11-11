@@ -1,7 +1,4 @@
-import {
-  Inject,
-  Injectable,
-} from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 
 import { ActivityInterface } from './interfaces/activity.interface.abstract';
 import { ActivityType } from '@prisma/client';
@@ -27,6 +24,10 @@ export class ActivitiesService {
         },
       },
     });
+  }
+
+  async getActivitiesByProjectId(projectId: string) {
+    return this.activityRepository.findAllByProjectId(projectId);
   }
 
   async getActivitiesByTaskId(taskId: string) {

@@ -53,6 +53,16 @@ export class ProjectsController {
     return this.projectsService.getProjectById(slug, projectId, user.id);
   }
 
+  // Endpoint to get all activities in a project
+  @Get(':projectId/activities')
+  async getProjectActivities(
+    @Param('slug') slug: string,
+    @Param('projectId', ParseUUIDPipe) projectId: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.projectsService.getProjectActivities(slug, projectId, user.id);
+  }
+
   // Endpoint to update project
   @Patch(':projectId')
   async updateProject(
