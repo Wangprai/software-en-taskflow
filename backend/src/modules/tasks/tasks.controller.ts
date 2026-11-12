@@ -17,7 +17,10 @@ import type { AuthUser } from '../auth/interfaces/auth-user.interface';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Tasks')
+@ApiBearerAuth('access-token')
 @Controller('workspaces/:slug/projects/:projectId/tasks')
 @UseGuards(JwtAuthGuard)
 export class TasksController {

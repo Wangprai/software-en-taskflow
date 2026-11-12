@@ -13,7 +13,10 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { NotificationsService } from './notifications.service';
 import { CurrentUser } from '../../decorators/current-user.decorator';
 import type { AuthUser } from '../auth/interfaces/auth-user.interface';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Notifications')
+@ApiBearerAuth('access-token')
 @Controller('notifications')
 @UseGuards(JwtAuthGuard)
 export class NotificationsController {

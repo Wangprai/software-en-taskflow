@@ -16,7 +16,9 @@ import { UsersService } from '../users/users.service';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import type { AuthUser } from './interfaces/auth-user.interface';
 import { CurrentUser } from '../../decorators/current-user.decorator';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -39,6 +41,7 @@ export class AuthController {
   }
 
   // Endpoint to get the profile of the authenticated user
+  @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)
   @Get('me')
   async me(@CurrentUser() user: AuthUser) {
@@ -53,6 +56,7 @@ export class AuthController {
   }
   
   // Endpoint for user logout
+  @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   @Post('logout')

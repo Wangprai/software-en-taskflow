@@ -17,7 +17,10 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { CurrentUser } from '../../decorators/current-user.decorator';
 import type { AuthUser } from '../auth/interfaces/auth-user.interface';
 import { UpdateProjectDto } from './dto/update-project.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Projects')
+@ApiBearerAuth('access-token')
 @Controller('workspaces/:slug/projects')
 @UseGuards(JwtAuthGuard)
 export class ProjectsController {

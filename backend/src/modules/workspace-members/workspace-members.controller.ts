@@ -15,7 +15,10 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateWorkspaceMemberDto } from './dto/create-workspace-member.dto';
 import type { AuthUser } from '../auth/interfaces/auth-user.interface';
 import { CurrentUser } from '../../decorators/current-user.decorator';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Workspace-members')
+@ApiBearerAuth('access-token')
 @Controller('workspaces/:slug/members')
 @UseGuards(JwtAuthGuard)
 export class WorkspaceMembersController {

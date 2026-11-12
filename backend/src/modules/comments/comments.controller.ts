@@ -17,7 +17,10 @@ import { CurrentUser } from '../../decorators/current-user.decorator';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import type { AuthUser } from '../auth/interfaces/auth-user.interface';
 import { UpdateCommentDto } from './dto/update-comment.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Comments')
+@ApiBearerAuth('access-token')
 @Controller('workspaces/:slug/projects/:projectId/tasks/:taskId/comments')
 @UseGuards(JwtAuthGuard)
 export class CommentsController {
