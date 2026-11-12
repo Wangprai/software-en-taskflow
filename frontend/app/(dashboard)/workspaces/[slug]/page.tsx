@@ -123,7 +123,13 @@ export default function WorkspaceDetailPage() {
                     {member.user.email}
                   </p>
                 </div>
-                <RoleBadge role={member.role} />
+                <RoleBadge
+                  role={
+                    member.user.id === workspace?.ownerId
+                      ? "OWNER"
+                      : member.role
+                  }
+                />
               </div>
             ))}
           </Card>
