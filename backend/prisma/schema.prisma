@@ -74,10 +74,13 @@ model Project {
 
   tasks Task[]
 
+  key String
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@unique([workspaceId, name])
+  @@unique([workspaceId, key])
   @@index([workspaceId])
   @@index([ownerId])
 }
@@ -152,6 +155,8 @@ model WorkspaceMember {
   userId String
 
   role MemberRole
+
+  joinedAt DateTime @default(now())
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 

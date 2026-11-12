@@ -22,33 +22,33 @@ export class ProjectsService {
 
   // Create project in workspace
   async createProject(
-    slug: string,
-    dto: CreateProjectDto,
-    currentUserId: string,
-  ): Promise<ProjectDetail> {
-    const { workspace } =
-      await this.workspaceAccessService.validateWorkspaceAccess(
-        slug,
-        currentUserId,
-      );
+  slug: string,
+  dto: CreateProjectDto,
+  currentUserId: string,
+): Promise<ProjectDetail> {
+  const { workspace } =
+    await this.workspaceAccessService.validateWorkspaceAccess(
+      slug,
+      currentUserId,
+    );
 
-    return this.projectRepository.create({
-      name: dto.name,
-      description: dto.description,
+  const key = await this.generateProjectKey(
+    workspace.id,
+    dto.name,
+  );
 
-      owner: {
-        connect: {
-          id: currentUserId,
-        },
-      },
-
-      workspace: {
-        connect: {
-          id: workspace.id,
-        },
-      },
-    });
-  }
+  return this.projectRepository.create({
+    name: dto.name,
+    key,
+    description: dto.description,
+    owner: {
+      connect: { id: currentUserId },
+    },
+    workspace: {
+      connect: { id: workspace.id },
+    },
+  });
+}
 
   // get all projects
   async getProjects(slug: string, currentUserId: string): Promise<ProjectList> {
@@ -171,4 +171,30 @@ export class ProjectsService {
       project,
     };
   }
+
+  // Helper function for generate project key
+  private async generateProjectKey(
+  workspaceId: string,
+  projectName: string,
+): Promise<string> {
+  const projects =
+    await this.projectRepository.findAllByWorkspaceId(workspaceId);
+
+  const firstWord = projectName.trim().split(/\s+/)[0];
+
+  const baseKey =
+    firstWord.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() || 'PROJECT';
+
+  const existingKeys = new Set(projects.map((project) => project.key));
+
+  let key = baseKey;
+  let suffix = 2;
+
+  while (existingKeys.has(key)) {
+    key = `${baseKey}-${suffix}`;
+    suffix++;
+  }
+
+  return key;
+}
 }
