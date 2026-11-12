@@ -23,7 +23,7 @@ async function bootstrap() {
 
   // Swagger Configuration
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('Backend API')
+    .setTitle('SE-Taskflow Backend API')
     .setDescription('Backend API Documentation')
     .setVersion('1.0')
     .addBearerAuth(
