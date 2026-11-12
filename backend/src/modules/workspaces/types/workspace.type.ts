@@ -10,9 +10,17 @@ export type WorkspaceDetail = Prisma.WorkspaceGetPayload<{
   include: typeof workspaceDetailInclude;
 }>;
 
-export type WorkspaceListItem = Prisma.WorkspaceGetPayload<{
+type WorkspaceListItemPayload = Prisma.WorkspaceGetPayload<{
   include: typeof workspaceListItemInclude;
 }>;
+
+export type WorkspaceListItem = Omit<
+  WorkspaceListItemPayload,
+  '_count'
+> & {
+  memberCount: number;
+  projectCount: number;
+};
 
 export type WorkspaceWithMembers = Prisma.WorkspaceGetPayload<{
   include: typeof workspaceWithMembersInclude;

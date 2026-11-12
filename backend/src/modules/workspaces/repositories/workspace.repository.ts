@@ -29,15 +29,21 @@ export class WorkspaceRepository implements WorkspaceInterface {
 
   // Find all workspaces associated with a user
   async findAllByUserId(userId: string): Promise<WorkspaceListItem[]> {
-    return this.prisma.workspace.findMany({
+    const workspaces = await this.prisma.workspace.findMany({
       where: {
         OR: [{ ownerId: userId }, { members: { some: { userId } } }],
       },
       include: workspaceListItemInclude,
     });
+
+    return workspaces.map((workspace) => ({
+      ...workspace,
+      memberCount: workspace._count.members,
+      projectCount: workspace._count.projects,
+    }));
   }
 
-  // Find a workspace by ID 
+  // Find a workspace by ID
   async findById(id: string): Promise<WorkspaceWithMembers | null> {
     return this.prisma.workspace.findUnique({
       where: { id },
@@ -55,7 +61,7 @@ export class WorkspaceRepository implements WorkspaceInterface {
     });
   }
 
-  // Update a workspace 
+  // Update a workspace
   async update(
     id: string,
     data: Prisma.WorkspaceUpdateInput,
@@ -67,7 +73,7 @@ export class WorkspaceRepository implements WorkspaceInterface {
     });
   }
 
-  // Delete a workspace 
+  // Delete a workspace
   async delete(id: string): Promise<WorkspaceDetail> {
     return this.prisma.workspace.delete({
       where: { id },
