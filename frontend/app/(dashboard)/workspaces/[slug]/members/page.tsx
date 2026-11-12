@@ -20,13 +20,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useMembers, useRemoveMember } from "@/features/workspace-members/hooks";
+import {
+  useMembers,
+  useRemoveMember,
+} from "@/features/workspace-members/hooks";
 import { formatDate } from "@/lib/format";
 import type { WorkspaceMember } from "@/types";
+import { useWorkspace } from "@/features/workspaces/hooks";
 
 export default function MembersPage() {
   const { slug } = useParams<{ slug: string }>();
   const { data: members, isLoading } = useMembers(slug);
+  const { data: workspace } = useWorkspace(slug);
   const removeMember = useRemoveMember(slug);
   const [addOpen, setAddOpen] = useState(false);
   const [removing, setRemoving] = useState<WorkspaceMember | null>(null);
@@ -77,10 +82,20 @@ export default function MembersPage() {
                   <TableCell>
                     <UserAvatar user={member.user} />
                   </TableCell>
-                  <TableCell className="font-medium">{member.user.name}</TableCell>
-                  <TableCell className="text-muted-foreground">{member.user.email}</TableCell>
+                  <TableCell className="font-medium">
+                    {member.user.name}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {member.user.email}
+                  </TableCell>
                   <TableCell>
-                    <RoleBadge role={member.role} />
+                    <RoleBadge
+                      role={
+                        member.user.id === workspace?.ownerId
+                          ? "OWNER"
+                          : member.role
+                      }
+                    />
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {formatDate(member.joinedAt)}

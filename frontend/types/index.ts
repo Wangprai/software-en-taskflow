@@ -33,6 +33,7 @@ export interface Workspace {
   createdAt: string;
   memberCount: number;
   projectCount: number;
+  ownerId: string;
 }
 
 export interface WorkspaceMember {

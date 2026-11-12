@@ -183,11 +183,13 @@ export class TasksService {
       currentUserId,
     );
 
-    // Only workspace owner or task assignee can update task
-    if (
-      workspace.ownerId !== currentUserId &&
-      task.assigneeId !== currentUserId
-    ) {
+    // Only workspace owner, task creator, or task assignee can update task
+    const canUpdate =
+      workspace.ownerId === currentUserId ||
+      task.createdById === currentUserId ||
+      task.assigneeId === currentUserId;
+
+    if (!canUpdate) {
       throw new ForbiddenException(
         'You do not have permission to update this task',
       );

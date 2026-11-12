@@ -4,7 +4,6 @@ import { toast } from "sonner";
 import { membersApi, type AddMemberInput } from "@/features/workspace-members/api";
 import { queryKeys } from "@/lib/query-client";
 
-
 export const membersQueryOptions = (slug: string) =>
   queryOptions({ queryKey: queryKeys.members(slug), queryFn: () => membersApi.list(slug) });
 
