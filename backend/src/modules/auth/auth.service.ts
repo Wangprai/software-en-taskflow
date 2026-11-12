@@ -13,7 +13,6 @@ export class AuthService {
   ) {}
 
   // Register a new user
-
   async register(dto: RegisterDto) {
     const user = await this.usersService.createUser(dto);
 
@@ -82,44 +81,55 @@ export class AuthService {
   }
 
   // Logout a user
-  async logout(userId: string) {
+  async logout(userId: string): Promise<void> {
     await this.usersService.updateRefreshToken(userId, null);
-    return { message: `User ${userId} logged out successfully` };
   }
 
   // Refresh new token
   async refresh(refreshToken: string) {
+    let payload: JwtPayload;
+
+    // Verify refresh token
     try {
-      const payload = this.jwtService.verify<JwtPayload>(refreshToken, {
+      payload = this.jwtService.verify<JwtPayload>(refreshToken, {
         secret: process.env.JWT_REFRESH_SECRET!,
       });
-
-      const user = await this.usersService.findUserById(payload.sub);
-
-      if (!user || user.refreshToken !== refreshToken) {
-        throw new UnauthorizedException('User not found or invalid token');
-      }
-
-      const newPayload: JwtPayload = {
-        sub: user.id,
-        name: user.name,
-        email: user.email,
-      };
-
-      const accessToken = this.jwtService.sign(newPayload, {
-        expiresIn: process.env.JWT_EXPIRE_IN as any,
-      });
-
-      const newRefreshToken = this.jwtService.sign(newPayload, {
-        secret: process.env.JWT_REFRESH_SECRET!,
-        expiresIn: process.env.JWT_REFRESH_EXPIRES_IN as any,
-      });
-
-      await this.usersService.updateRefreshToken(user.id, newRefreshToken);
-
-      return { accessToken, refreshToken: newRefreshToken };
     } catch {
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    }
+
+    // Find user
+    const user = await this.usersService.findUserById(payload.sub);
+
+    // Validate refresh token
+    if (!user || user.refreshToken !== refreshToken) {
       throw new UnauthorizedException('Invalid refresh token');
     }
+
+    // Create new payload
+    const newPayload: JwtPayload = {
+      sub: user.id,
+      name: user.name,
+      email: user.email,
+    };
+
+    // Generate new access token
+    const accessToken = this.jwtService.sign(newPayload, {
+      expiresIn: process.env.JWT_EXPIRE_IN as any,
+    });
+
+    // Generate new refresh token
+    const newRefreshToken = this.jwtService.sign(newPayload, {
+      secret: process.env.JWT_REFRESH_SECRET!,
+      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN as any,
+    });
+
+    // Update refresh token in database
+    await this.usersService.updateRefreshToken(user.id, newRefreshToken);
+
+    return {
+      accessToken,
+      refreshToken: newRefreshToken,
+    };
   }
 }

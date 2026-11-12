@@ -54,15 +54,14 @@ export class AuthController {
     const { password, refreshToken, ...userWithoutPassword } = foundUser;
     return userWithoutPassword;
   }
-  
+
   // Endpoint for user logout
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   @Post('logout')
-  async logout(@CurrentUser() user: AuthUser) {
+  async logout(@CurrentUser() user: AuthUser): Promise<void> {
     await this.authService.logout(user.id);
-    return { message: 'User logged out successfully' };
   }
 
   // Endpoint for refresh token

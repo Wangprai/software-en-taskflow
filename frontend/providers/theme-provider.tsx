@@ -20,7 +20,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const stored = window.localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
-    const next = stored ?? "dark";
+    const next = stored ?? "light";
     setThemeState(next);
     document.documentElement.classList.toggle("dark", next === "dark");
   }, []);

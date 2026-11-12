@@ -5,7 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { authApi, LoginInput, RegisterInput } from "./api";
 import { toast } from "sonner";
-import { TOKEN_STORAGE_KEY } from "@/constants";
+import { REFRESH_TOKEN_STORAGE_KEY, TOKEN_STORAGE_KEY } from "@/constants";
 
 export function useLogin() {
   const { setSession } = useAuth();
@@ -16,6 +16,7 @@ export function useLogin() {
       const auth = await authApi.login(input);
 
       localStorage.setItem(TOKEN_STORAGE_KEY, auth.accessToken);
+      localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, auth.refreshToken);
 
       const user = await authApi.me();
 
@@ -26,7 +27,7 @@ export function useLogin() {
     },
 
     onSuccess: (auth) => {
-      setSession(auth.accessToken, auth.user);
+      setSession(auth.accessToken, auth.refreshToken, auth.user);
 
       toast.success(`Welcome back, ${auth.user.name.split(" ")[0]}`);
 
@@ -49,7 +50,7 @@ export function useRegister() {
     },
 
     onSuccess: (data) => {
-      setSession(data.accessToken, data.user);
+      setSession(data.accessToken, data.refreshToken, data.user);
 
       toast.success(`Welcome, ${data.user.name.split(" ")[0]}`);
 

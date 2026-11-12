@@ -1,6 +1,7 @@
 import type { TaskPriority, TaskStatus } from "@/types";
 
 export const TOKEN_STORAGE_KEY = "taskflow.token";
+export const REFRESH_TOKEN_STORAGE_KEY = "taskflow.refresh-token";
 export const USER_STORAGE_KEY = "taskflow.user";
 export const THEME_STORAGE_KEY = "taskflow.theme";
 

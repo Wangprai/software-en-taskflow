@@ -1,4 +1,4 @@
-import { api } from "@/lib/axios";
+import { api, refreshApi } from "@/lib/axios";
 import { AuthResponse, RegisterResponse, User } from "@/types";
 
 export interface LoginInput {
@@ -24,4 +24,11 @@ export const authApi = {
       .then((response) => response.data),
 
   me: () => api.get<User>("/auth/me").then((response) => response.data),
+
+  refresh: (refreshToken: string) =>
+    refreshApi
+      .post<AuthResponse>("/auth/refresh", { refreshToken })
+      .then((response) => response.data),
+
+  logout: () => api.post("/auth/logout"),
 };
