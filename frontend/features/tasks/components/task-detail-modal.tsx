@@ -44,6 +44,8 @@ import {
   STATUS_LABEL,
   STATUS_ORDER,
 } from "@/constants";
+import { useWorkspace } from "@/features/workspaces/hooks";
+import { useAuth } from "@/providers/auth-provider";
 
 export function TaskDetailModal({
   slug,
@@ -67,6 +69,11 @@ export function TaskDetailModal({
     projectId,
     task?.id ?? null,
   );
+
+  const { data: workspace } = useWorkspace(slug);
+  const { user } = useAuth();
+
+  const isOwner = workspace?.ownerId === user?.id;
 
   const [title, setTitle] = useState(task?.title ?? "");
   const [description, setDescription] = useState(task?.description ?? "");
@@ -241,17 +248,21 @@ export function TaskDetailModal({
 
             <Separator />
 
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full justify-start text-destructive hover:text-destructive"
-              disabled={remove.isPending}
-              onClick={() =>
-                remove.mutate(task.id, { onSuccess: () => onOpenChange(false) })
-              }
-            >
-              <Trash2 className="size-4" /> Delete task
-            </Button>
+            {isOwner && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full justify-start text-destructive hover:text-destructive"
+                disabled={remove.isPending}
+                onClick={() =>
+                  remove.mutate(task.id, {
+                    onSuccess: () => onOpenChange(false),
+                  })
+                }
+              >
+                <Trash2 className="size-4" /> Delete task
+              </Button>
+            )}
           </aside>
         </div>
       </DialogContent>
