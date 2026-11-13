@@ -275,6 +275,30 @@ export class TasksService {
       );
     }
 
+    // Status changed
+    if (isStatusChanged) {
+      // Create status changed activity
+      await this.activitiesService.createActivity(
+        task.id,
+        currentUserId,
+        ActivityType.STATUS_CHANGED,
+      );
+
+      // Notify current assignee (except the user who changed the status)
+      if (updatedTask.assigneeId && updatedTask.assigneeId !== currentUserId) {
+        await this.notificationsService.createNotification({
+          userId: updatedTask.assigneeId,
+          type: NotificationType.STATUS_CHANGED,
+          message: `The status of task "${updatedTask.title}" has changed to ${dto.status}`,
+          payload: {
+            taskId: task.id,
+            projectId,
+            workspaceSlug: slug,
+          },
+        });
+      }
+    }
+
     // Assignee changed
     if (isAssigneeChanged) {
       await this.activitiesService.createActivity(
