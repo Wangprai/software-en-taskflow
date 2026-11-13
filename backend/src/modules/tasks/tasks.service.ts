@@ -204,8 +204,7 @@ export class TasksService {
     const isStatusChanged =
       dto.status !== undefined && dto.status !== task.status;
 
-    const isPositionChanged =
-      dto.position !== undefined && dto.position !== task.position;
+    const isPositionChanged = dto.position !== undefined;
 
     const isAssigneeChanged =
       dto.assigneeId !== undefined && dto.assigneeId !== task.assigneeId;
