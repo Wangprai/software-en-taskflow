@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { TaskInterface } from '../interfaces/task.interface.abstract';
-import { Prisma } from '@prisma/client';
+import { Prisma, TaskStatus } from '@prisma/client';
 import { TaskDetail, TaskList } from '../types/task.type';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { taskInclude } from '../types/task.include';
@@ -84,6 +84,81 @@ export class TaskRepository implements TaskInterface {
     return this.prisma.task.delete({
       where: { id },
       include: taskInclude,
+    });
+  }
+
+  // Re order task
+  async reorder(
+    taskId: string,
+    projectId: string,
+    status: TaskStatus,
+    position?: number,
+  ): Promise<TaskDetail> {
+    return this.prisma.$transaction(async (tx) => {
+      const task = await tx.task.findFirst({
+        where: {
+          id: taskId,
+          projectId,
+        },
+      });
+
+      if (!task) {
+        throw new NotFoundException('Task not found');
+      }
+
+      const sourceStatus = task.status;
+
+      // Get tasks in destination column, excluding current task
+      const targetTasks = await tx.task.findMany({
+        where: {
+          projectId,
+          status,
+          id: { not: taskId },
+        },
+        orderBy: { position: 'asc' },
+      });
+
+      const insertPosition = Math.max(
+        0,
+        Math.min(position ?? targetTasks.length, targetTasks.length),
+      );
+
+      targetTasks.splice(insertPosition, 0, task);
+
+      // Reindex source column if status changed
+      if (sourceStatus !== status) {
+        const sourceTasks = await tx.task.findMany({
+          where: {
+            projectId,
+            status: sourceStatus,
+            id: { not: taskId },
+          },
+          orderBy: { position: 'asc' },
+        });
+
+        for (const [index, item] of sourceTasks.entries()) {
+          await tx.task.update({
+            where: { id: item.id },
+            data: { position: index },
+          });
+        }
+      }
+
+      // Update status and position of destination tasks
+      for (const [index, item] of targetTasks.entries()) {
+        await tx.task.update({
+          where: { id: item.id },
+          data: {
+            status,
+            position: index,
+          },
+        });
+      }
+
+      return tx.task.findUniqueOrThrow({
+        where: { id: taskId },
+        include: taskInclude,
+      });
     });
   }
 }

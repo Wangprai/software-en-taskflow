@@ -13,8 +13,14 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { WorkspaceAccessService } from '../workspaces/workspace-access.service';
 import { TaskDetail, TaskList } from './types/task.type';
 import { ActivitiesService } from '../activities/activities.service';
-import { ActivityType, NotificationType, Prisma } from '@prisma/client';
+import {
+  ActivityType,
+  NotificationType,
+  Prisma,
+  TaskStatus,
+} from '@prisma/client';
 import { NotificationsService } from '../notifications/notifications.service';
+import { taskInclude } from './types/task.include';
 
 @Injectable()
 export class TasksService {
@@ -198,6 +204,9 @@ export class TasksService {
     const isStatusChanged =
       dto.status !== undefined && dto.status !== task.status;
 
+    const isPositionChanged =
+      dto.position !== undefined && dto.position !== task.position;
+
     const isAssigneeChanged =
       dto.assigneeId !== undefined && dto.assigneeId !== task.assigneeId;
 
@@ -246,7 +255,6 @@ export class TasksService {
     const updatedTask = await this.taskRepository.update(task.id, {
       title: dto.title,
       description: dto.description,
-      status: dto.status,
       priority: dto.priority,
       dueDate:
         dto.dueDate !== undefined
@@ -257,27 +265,14 @@ export class TasksService {
       ...assigneeUpdate,
     });
 
-    // Status changed
-    if (isStatusChanged) {
-      await this.activitiesService.createActivity(
+    // Reorder tasks
+    if (isStatusChanged || isPositionChanged) {
+      await this.taskRepository.reorder(
         task.id,
-        currentUserId,
-        ActivityType.STATUS_CHANGED,
+        projectId,
+        dto.status ?? task.status,
+        dto.position,
       );
-
-      if (updatedTask.assigneeId && updatedTask.assigneeId !== currentUserId) {
-        await this.notificationsService.createNotification({
-          userId: updatedTask.assigneeId,
-          type: NotificationType.STATUS_CHANGED,
-          message: `Task "${updatedTask.title}" status changed to ${updatedTask.status}`,
-          payload: {
-            taskId: task.id,
-            projectId,
-            workspaceSlug: slug,
-            status: updatedTask.status,
-          },
-        });
-      }
     }
 
     // Assignee changed
@@ -311,7 +306,10 @@ export class TasksService {
       );
     }
 
-    return updatedTask;
+    return (
+      (await this.taskRepository.findByProjectAndId(projectId, task.id)) ??
+      updatedTask
+    );
   }
 
   // Delete task

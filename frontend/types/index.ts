@@ -99,8 +99,9 @@ export interface UpdateTaskInput {
   description?: string;
   status?: TaskStatus;
   priority?: TaskPriority;
-  assigneeId?: string | null;
+  assigneeId?: string | null; 
   dueDate?: string;
+  position?: number;
 }
 
 export interface Comment {

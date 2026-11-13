@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma, TaskStatus } from '@prisma/client';
 import { TaskDetail, TaskList } from '../types/task.type';
 
 export abstract class TaskInterface {
@@ -21,4 +21,11 @@ export abstract class TaskInterface {
   ): Promise<TaskDetail>;
 
   abstract delete(id: string): Promise<TaskDetail>;
+
+  abstract reorder(
+    taskId: string,
+    projectId: string,
+    status: TaskStatus,
+    position?: number,
+  ): Promise<TaskDetail>;
 }

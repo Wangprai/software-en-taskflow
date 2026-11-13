@@ -2,9 +2,11 @@ import { TaskPriority, TaskStatus } from '@prisma/client';
 import {
   IsDateString,
   IsEnum,
+  IsInt,
   IsOptional,
   IsString,
   IsUUID,
+  Min,
   ValidateIf,
 } from 'class-validator';
 
@@ -33,4 +35,9 @@ export class UpdateTaskDto {
   @IsOptional()
   @IsDateString()
   dueDate?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  position?: number;
 }

@@ -23,7 +23,7 @@ export function KanbanBoard({
   onOpenTask,
   onAddTask,
 }: {
-  slug: string,
+  slug: string;
   projectId: string;
   tasks: Task[];
   onOpenTask: (task: Task) => void;
@@ -33,13 +33,50 @@ export function KanbanBoard({
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [overColumn, setOverColumn] = useState<TaskStatus | null>(null);
 
+  const [overTaskId, setOverTaskId] = useState<string | null>(null);
+
+  // Drop on a task: insert before the target task
+  const dropOnTask = (targetTask: Task) => {
+    setOverColumn(null);
+    setOverTaskId(null);
+
+    if (!draggingId || draggingId === targetTask.id) return;
+
+    const targetItems = tasks
+      .filter((t) => t.status === targetTask.status && t.id !== draggingId)
+      .sort((a, b) => a.position - b.position);
+
+    const position = targetItems.findIndex((t) => t.id === targetTask.id);
+
+    if (position === -1) return;
+
+    move.mutate({
+      taskId: draggingId,
+      status: targetTask.status,
+      position,
+    });
+
+    setDraggingId(null);
+  };
+
+  // Drop on column: append to the end
   const drop = (status: TaskStatus) => {
     setOverColumn(null);
+    setOverTaskId(null);
+
     if (!draggingId) return;
-    const task = tasks.find((t) => t.id === draggingId);
+
+    const targetItems = tasks.filter(
+      (t) => t.status === status && t.id !== draggingId,
+    );
+
+    move.mutate({
+      taskId: draggingId,
+      status,
+      position: targetItems.length,
+    });
+
     setDraggingId(null);
-    if (!task || task.status === status) return;
-    move.mutate({ taskId: task.id, status });
   };
 
   return (
@@ -94,11 +131,35 @@ export function KanbanBoard({
                       onOpenTask(task);
                     }
                   }}
-                  onDragStart={() => setDraggingId(task.id)}
-                  onDragEnd={() => setDraggingId(null)}
+                  onDragStart={(e) => {
+                    e.dataTransfer.effectAllowed = "move";
+                    e.dataTransfer.setData("text/plain", task.id);
+                    setDraggingId(task.id);
+                  }}
+                  onDragEnd={() => {
+                    setDraggingId(null);
+                    setOverTaskId(null);
+                    setOverColumn(null);
+                  }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setOverTaskId(task.id);
+                  }}
+                  onDragLeave={() => {
+                    setOverTaskId((id) => (id === task.id ? null : id));
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropOnTask(task);
+                  }}
                   className={cn(
                     "group cursor-grab gap-0 border border-border bg-card p-3 shadow-none transition-all hover:border-primary/40 focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing",
                     draggingId === task.id && "opacity-50",
+                    overTaskId === task.id &&
+                      draggingId !== task.id &&
+                      "border-primary border-t-2",
                   )}
                 >
                   <div className="flex items-start gap-2">
