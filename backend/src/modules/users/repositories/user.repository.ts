@@ -14,7 +14,11 @@ export class UserRepository implements UserInterface {
 
   // Find a user by their email address
   async findByEmail(email: string): Promise<User | null> {
-    return this.prisma.user.findUnique({ where: { email } });
+    const normalizedEmail = email.trim().toLowerCase();
+
+    return this.prisma.user.findUnique({
+      where: { email: normalizedEmail },
+    });
   }
 
   // Find a user by their ID

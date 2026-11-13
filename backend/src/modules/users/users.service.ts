@@ -12,7 +12,9 @@ export class UsersService {
 
   // Creates a new user with hashed password
   async createUser(dto: RegisterDto) {
-    const existingUser = await this.userRepository.findByEmail(dto.email);
+    const normalizedEmail = dto.email.trim().toLowerCase();
+
+    const existingUser = await this.userRepository.findByEmail(normalizedEmail);
 
     // Check if a user with the same email already exists
     if (existingUser) {
@@ -20,9 +22,10 @@ export class UsersService {
     }
 
     const hashedPassword = await this.passwordHasher.hash(dto.password);
+
     return this.userRepository.create({
       name: dto.name,
-      email: dto.email,
+      email: normalizedEmail,
       password: hashedPassword,
     });
   }

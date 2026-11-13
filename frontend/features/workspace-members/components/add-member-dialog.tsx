@@ -34,7 +34,12 @@ import { useAddMember } from "@/features/workspace-members/hooks";
 
 const schema = z.object({
   name: z.string().trim().max(60).optional(),
-  email: z.string().trim().email("Enter a valid email address").max(255),
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .email("Enter a valid email address")
+    .max(255),
   role: z.enum(["ADMIN", "MEMBER"]),
 });
 
@@ -84,7 +89,14 @@ export function AddMemberDialog({
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="teammate@company.com" {...field} />
+                    <Input
+                      type="email"
+                      placeholder="teammate@company.com"
+                      {...field}
+                      onChange={(e) =>
+                        field.onChange(e.target.value.toLowerCase())
+                      }
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -112,7 +124,11 @@ export function AddMemberDialog({
               )}
             />
             <DialogFooter>
-              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => onOpenChange(false)}
+              >
                 Cancel
               </Button>
               <Button type="submit" disabled={addMember.isPending}>

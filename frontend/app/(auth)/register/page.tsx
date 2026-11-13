@@ -22,7 +22,12 @@ import {
 const schema = z
   .object({
     name: z.string().trim().min(2, "Enter your full name").max(60),
-    email: z.string().trim().email("Enter a valid email address").max(255),
+    email: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .email("Enter a valid email address")
+      .max(255),
     password: z.string().min(8, "Use at least 8 characters").max(72),
     confirmPassword: z.string(),
   })
@@ -90,6 +95,9 @@ export default function RegisterPage() {
                     autoComplete="email"
                     placeholder="you@company.com"
                     {...field}
+                    onChange={(e) =>
+                      field.onChange(e.target.value.toLowerCase())
+                    }
                   />
                 </FormControl>
                 <FormMessage />

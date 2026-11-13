@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/form";
 
 const schema = z.object({
-  email: z.string().trim().email("Enter a valid email address"),
+  email: z.string().trim().toLowerCase().email("Enter a valid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
@@ -81,9 +81,11 @@ export default function LoginPage() {
                     autoComplete="email"
                     placeholder="you@company.com"
                     {...field}
+                    onChange={(e) =>
+                      field.onChange(e.target.value.toLowerCase())
+                    }
                   />
                 </FormControl>
-
                 <FormMessage />
               </FormItem>
             )}
