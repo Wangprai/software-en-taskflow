@@ -6,7 +6,10 @@ import { useState } from "react";
 import { PageHeader } from "@/components/shared/page-header";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { EmptyState } from "@/components/shared/empty-state";
-import { EntityFormDialog, type EntityValues } from "@/components/shared/entity-form-dialog";
+import {
+  EntityFormDialog,
+  type EntityValues,
+} from "@/components/shared/entity-form-dialog";
 import { CardGridSkeleton } from "@/components/shared/skeletons";
 import { Button } from "@/components/ui/button";
 import { WorkspaceCard } from "@/features/workspaces/components/workspace-card";
@@ -17,13 +20,15 @@ import {
   useWorkspaces,
 } from "@/features/workspaces/hooks";
 import type { Workspace } from "@/types";
-
+import { useAuth } from "@/providers/auth-provider";
 
 export default function WorkspacesPage() {
   const { data: workspaces, isLoading, isError, error } = useWorkspaces();
   const createWorkspace = useCreateWorkspace();
   const updateWorkspace = useUpdateWorkspace();
   const deleteWorkspace = useDeleteWorkspace();
+
+  const { user } = useAuth();
 
   const [createOpen, setCreateOpen] = useState(false);
   const [editing, setEditing] = useState<Workspace | null>(null);
@@ -75,14 +80,18 @@ export default function WorkspacesPage() {
 
       {workspaces && workspaces.length > 0 && (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {workspaces.map((workspace) => (
-            <WorkspaceCard
-              key={workspace.id}
-              workspace={workspace}
-              onEdit={() => setEditing(workspace)}
-              onDelete={() => setDeleting(workspace)}
-            />
-          ))}
+          {workspaces.map((workspace) => {
+            const isOwner = workspace.ownerId === user?.id;
+
+            return (
+              <WorkspaceCard
+                key={workspace.id}
+                workspace={workspace}
+                onEdit={isOwner ? () => setEditing(workspace) : undefined}
+                onDelete={isOwner ? () => setDeleting(workspace) : undefined}
+              />
+            );
+          })}
         </div>
       )}
 
@@ -104,7 +113,9 @@ export default function WorkspacesPage() {
         submitLabel="Save changes"
         isPending={updateWorkspace.isPending}
         defaultValues={
-          editing ? { name: editing.name, description: editing.description } : undefined
+          editing
+            ? { name: editing.name, description: editing.description }
+            : undefined
         }
         onSubmit={onUpdate}
       />

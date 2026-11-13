@@ -19,14 +19,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { Workspace } from "@/types";
 
+
 export function WorkspaceCard({
   workspace,
   onEdit,
   onDelete,
 }: {
   workspace: Workspace;
-  onEdit: () => void;
-  onDelete: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }) {
   return (
     <Card className="group relative gap-0 overflow-hidden p-5 transition-colors hover:border-primary/40">
@@ -45,29 +46,36 @@ export function WorkspaceCard({
             /{workspace.slug}
           </p>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-8"
-              aria-label="Workspace actions"
-            >
-              <MoreHorizontal className="size-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={onEdit}>
-              <Pencil className="size-4" /> Edit
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="text-destructive focus:text-destructive"
-              onClick={onDelete}
-            >
-              <Trash2 className="size-4" /> Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+
+        {(onEdit || onDelete) && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-8"
+                aria-label="Workspace actions"
+              >
+                <MoreHorizontal className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {onEdit && (
+                <DropdownMenuItem onClick={onEdit}>
+                  <Pencil className="size-4" /> Edit
+                </DropdownMenuItem>
+              )}
+              {onDelete && (
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive"
+                  onClick={onDelete}
+                >
+                  <Trash2 className="size-4" /> Delete
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
 
       <p className="mt-4 line-clamp-2 min-h-10 text-sm text-muted-foreground">
@@ -79,8 +87,7 @@ export function WorkspaceCard({
           <Users className="size-3.5" /> {workspace.memberCount} members
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <FolderKanban className="size-3.5" /> {workspace.projectCount}{" "}
-          projects
+          <FolderKanban className="size-3.5" /> {workspace.projectCount} projects
         </span>
       </div>
     </Card>

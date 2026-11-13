@@ -20,6 +20,8 @@ import {
 } from "@/features/projects/hooks";
 import type { Project } from "@/types";
 import { useParams } from "next/navigation";
+import { useWorkspace } from "@/features/workspaces/hooks";
+import { useAuth } from "@/providers/auth-provider";
 
 export default function ProjectsPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -27,6 +29,11 @@ export default function ProjectsPage() {
   const createProject = useCreateProject(slug);
   const updateProject = useUpdateProject(slug);
   const deleteProject = useDeleteProject(slug);
+
+  const { data: workspace } = useWorkspace(slug);
+  const { user } = useAuth();
+
+  const isOwner = workspace?.ownerId === user?.id;
 
   const [createOpen, setCreateOpen] = useState(false);
   const [editing, setEditing] = useState<Project | null>(null);
@@ -77,8 +84,8 @@ export default function ProjectsPage() {
               key={project.id}
               project={project}
               slug={slug}
-              onEdit={() => setEditing(project)}
-              onDelete={() => setDeleting(project)}
+              onEdit={isOwner ? () => setEditing(project) : undefined}
+              onDelete={isOwner ? () => setDeleting(project) : undefined}
             />
           ))}
         </div>

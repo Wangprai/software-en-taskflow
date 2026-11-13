@@ -110,6 +110,21 @@ export class ProjectsService {
     return project;
   }
 
+  // get project activity
+  async getProjectActivities(
+    slug: string,
+    projectId: string,
+    currentUserId: string,
+  ) {
+    const { project } = await this.validateProjectAccess(
+      slug,
+      projectId,
+      currentUserId,
+    );
+
+    return this.activitiesService.getActivitiesByProjectId(project.id);
+  }
+
   // Update project
   async updateProject(
     slug: string,
@@ -198,20 +213,6 @@ export class ProjectsService {
     }
 
     return this.projectRepository.delete(projectId);
-  }
-
-  async getProjectActivities(
-    slug: string,
-    projectId: string,
-    currentUserId: string,
-  ) {
-    const { project } = await this.validateProjectAccess(
-      slug,
-      projectId,
-      currentUserId,
-    );
-
-    return this.activitiesService.getActivitiesByProjectId(project.id);
   }
 
   // Helper function for validate project access

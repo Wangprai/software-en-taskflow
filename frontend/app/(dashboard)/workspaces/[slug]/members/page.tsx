@@ -27,11 +27,16 @@ import {
 import { formatDate } from "@/lib/format";
 import type { WorkspaceMember } from "@/types";
 import { useWorkspace } from "@/features/workspaces/hooks";
+import { useAuth } from "@/providers/auth-provider";
 
 export default function MembersPage() {
   const { slug } = useParams<{ slug: string }>();
   const { data: members, isLoading } = useMembers(slug);
   const { data: workspace } = useWorkspace(slug);
+
+  const { user } = useAuth();
+  const isOwner = workspace?.ownerId === user?.id;
+
   const removeMember = useRemoveMember(slug);
   const [addOpen, setAddOpen] = useState(false);
   const [removing, setRemoving] = useState<WorkspaceMember | null>(null);
@@ -42,9 +47,11 @@ export default function MembersPage() {
         title="Members"
         description="People with access to this workspace and its projects."
         actions={
-          <Button onClick={() => setAddOpen(true)}>
-            <UserPlus className="size-4" /> Add member
-          </Button>
+          isOwner ? (
+            <Button onClick={() => setAddOpen(true)}>
+              <UserPlus className="size-4" /> Add member
+            </Button>
+          ) : undefined
         }
       />
 
@@ -56,9 +63,11 @@ export default function MembersPage() {
           title="No members yet"
           description="Invite your teammates so they can collaborate on projects."
           action={
-            <Button onClick={() => setAddOpen(true)}>
-              <UserPlus className="size-4" /> Add member
-            </Button>
+            isOwner ? (
+              <Button onClick={() => setAddOpen(true)}>
+                <UserPlus className="size-4" /> Add member
+              </Button>
+            ) : undefined
           }
         />
       )}
@@ -73,7 +82,9 @@ export default function MembersPage() {
                 <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Joined</TableHead>
-                <TableHead className="w-16 text-right">Actions</TableHead>
+                {isOwner && (
+                  <TableHead className="w-16 text-right">Actions</TableHead>
+                )}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -100,16 +111,20 @@ export default function MembersPage() {
                   <TableCell className="text-muted-foreground">
                     {formatDate(member.joinedAt)}
                   </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label={`Remove ${member.user.name}`}
-                      onClick={() => setRemoving(member)}
-                    >
-                      <Trash2 className="size-4 text-destructive" />
-                    </Button>
-                  </TableCell>
+                  {isOwner && (
+                    <TableCell className="text-right">
+                      {member.user.id !== workspace?.ownerId && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`Remove ${member.user.name}`}
+                          onClick={() => setRemoving(member)}
+                        >
+                          <Trash2 className="size-4 text-destructive" />
+                        </Button>
+                      )}
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>
@@ -117,19 +132,23 @@ export default function MembersPage() {
         </Card>
       )}
 
-      <AddMemberDialog slug={slug} open={addOpen} onOpenChange={setAddOpen} />
+      {isOwner && (
+        <AddMemberDialog slug={slug} open={addOpen} onOpenChange={setAddOpen} />
+      )}
 
-      <ConfirmDialog
-        open={Boolean(removing)}
-        onOpenChange={(open) => !open && setRemoving(null)}
-        title={`Remove ${removing?.user.name}?`}
-        description="They will immediately lose access to this workspace."
-        confirmLabel="Remove"
-        onConfirm={() => {
-          if (removing) removeMember.mutate(removing.id);
-          setRemoving(null);
-        }}
-      />
+      {isOwner && (
+        <ConfirmDialog
+          open={Boolean(removing)}
+          onOpenChange={(open) => !open && setRemoving(null)}
+          title={`Remove ${removing?.user.name}?`}
+          description="They will immediately lose access to this workspace."
+          confirmLabel="Remove"
+          onConfirm={() => {
+            if (removing) removeMember.mutate(removing.id);
+            setRemoving(null);
+          }}
+        />
+      )}
     </div>
   );
 }
