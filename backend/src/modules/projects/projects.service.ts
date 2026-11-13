@@ -133,10 +133,46 @@ export class ProjectsService {
       throw new BadRequestException('Project does not belong to workspace');
     }
 
-    return this.projectRepository.update(projectId, {
-      name: dto.name,
-      description: dto.description,
-    });
+    try {
+      return await this.projectRepository.update(projectId, {
+        name: dto.name,
+        description: dto.description,
+      });
+    } catch (error) {
+      const prismaError = error as {
+        code?: string;
+        meta?: {
+          target?: unknown;
+          driverAdapterError?: {
+            cause?: {
+              constraint?: {
+                fields?: unknown;
+              };
+            };
+          };
+        };
+      };
+
+      const target =
+        prismaError.meta?.target ??
+        prismaError.meta?.driverAdapterError?.cause?.constraint?.fields;
+
+      const fields = Array.isArray(target)
+        ? target.map((field) => String(field).replace(/"/g, ''))
+        : [];
+
+      if (
+        prismaError.code === 'P2002' &&
+        fields.includes('workspaceId') &&
+        fields.includes('name')
+      ) {
+        throw new ConflictException(
+          'Project name already exists in this workspace',
+        );
+      }
+
+      throw error;
+    }
   }
 
   // Delete project
