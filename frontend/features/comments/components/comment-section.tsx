@@ -139,6 +139,7 @@ export function CommentSection({
         <ul className="space-y-4">
           {(comments ?? []).map((comment) => {
             const isEditing = editingId === comment.id;
+            const isOwner = comment.userId === user?.id;
 
             return (
               <li key={comment.id}>
@@ -196,23 +197,26 @@ export function CommentSection({
                     </div>
                   </ContextMenuTrigger>
 
-                  <ContextMenuContent>
-                    <ContextMenuItem onClick={() => startEdit(comment)}>
-                      <Pencil className="size-4" />
-                      Edit
-                    </ContextMenuItem>
+                  {isOwner && (
+                    <ContextMenuContent>
+                      <ContextMenuItem onClick={() => startEdit(comment)}>
+                        <Pencil className="size-4" />
+                        Edit
+                      </ContextMenuItem>
 
-                    <ContextMenuSeparator />
+                      <ContextMenuSeparator />
 
-                    <ContextMenuItem
-                      className="text-destructive focus:text-destructive"
-                      onClick={() => deleteComment(comment.id)}
-                      disabled={remove.isPending}
-                    >
-                      <Trash2 className="size-4" />
-                      Delete
-                    </ContextMenuItem>
-                  </ContextMenuContent>
+                      <ContextMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onClick={() => deleteComment(comment.id)}
+                        disabled={remove.isPending}
+                      >
+                        <Trash2 className="size-4" />
+                        Delete
+                      </ContextMenuItem>
+                    </ContextMenuContent>
+                  )}
+                  
                 </ContextMenu>
               </li>
             );
