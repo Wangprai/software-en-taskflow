@@ -78,6 +78,16 @@ export function TaskDetailModal({
   const [title, setTitle] = useState(task?.title ?? "");
   const [description, setDescription] = useState(task?.description ?? "");
 
+  const [dueDate, setDueDate] = useState(
+    task?.dueDate ? toDateInputValue(task.dueDate) : "",
+  );
+
+  useEffect(() => {
+    setTitle(task?.title ?? "");
+    setDescription(task?.description ?? "");
+    setDueDate(task?.dueDate ? toDateInputValue(task.dueDate) : "");
+  }, [task?.id, task?.title, task?.description, task?.dueDate]);
+
   useEffect(() => {
     setTitle(task?.title ?? "");
     setDescription(task?.description ?? "");
@@ -233,17 +243,49 @@ export function TaskDetailModal({
             </Field>
 
             <Field label="Due date">
-              <span
-                className={cn(
-                  "inline-flex items-center gap-1.5 text-sm",
-                  isOverdue(task.dueDate) &&
-                    task.status !== "DONE" &&
-                    "text-destructive",
-                )}
-              >
-                <CalendarDays className="size-3.5" />
-                {formatDate(task.dueDate)}
-              </span>
+              <div className="space-y-2">
+                <Input
+                  type="date"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
+                  aria-label="Due date"
+                />
+
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    className="flex-1"
+                    disabled={
+                      update.isPending ||
+                      dueDate ===
+                        (task.dueDate ? toDateInputValue(task.dueDate) : "")
+                    }
+                    onClick={() =>
+                      patch({
+                        dueDate: dueDate
+                          ? new Date(`${dueDate}T00:00:00`).toISOString()
+                          : null,
+                      })
+                    }
+                  >
+                    Save
+                  </Button>
+
+                  {task.dueDate && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={update.isPending}
+                      onClick={() => {
+                        setDueDate("");
+                        patch({ dueDate: null });
+                      }}
+                    >
+                      Clear
+                    </Button>
+                  )}
+                </div>
+              </div>
             </Field>
 
             <Separator />
@@ -285,4 +327,14 @@ function Field({
       {children}
     </div>
   );
+}
+
+function toDateInputValue(date: string | Date): string {
+  const value = new Date(date);
+
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
 }
