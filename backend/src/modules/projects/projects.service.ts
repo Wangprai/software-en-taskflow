@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Inject,
   Injectable,
   NotFoundException,
@@ -10,6 +11,7 @@ import { UpdateProjectDto } from './dto/update-project.dto';
 import { WorkspaceAccessService } from '../workspaces/workspace-access.service';
 import { ProjectDetail, ProjectList } from './types/project.type';
 import { ActivitiesService } from '../activities/activities.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class ProjectsService {
@@ -34,17 +36,52 @@ export class ProjectsService {
 
     const key = await this.generateProjectKey(workspace.id, dto.name);
 
-    return this.projectRepository.create({
-      name: dto.name,
-      key,
-      description: dto.description,
-      owner: {
-        connect: { id: currentUserId },
-      },
-      workspace: {
-        connect: { id: workspace.id },
-      },
-    });
+    try {
+      return await this.projectRepository.create({
+        name: dto.name,
+        key,
+        description: dto.description,
+        owner: {
+          connect: { id: currentUserId },
+        },
+        workspace: {
+          connect: { id: workspace.id },
+        },
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        const meta = error.meta as
+          | {
+              target?: unknown;
+              driverAdapterError?: {
+                cause?: {
+                  constraint?: {
+                    fields?: unknown;
+                  };
+                };
+              };
+            }
+          | undefined;
+
+        const target =
+          meta?.target ?? meta?.driverAdapterError?.cause?.constraint?.fields;
+
+        const fields = Array.isArray(target)
+          ? target.map((field) => String(field).replace(/"/g, ''))
+          : [];
+
+        if (fields.includes('workspaceId') && fields.includes('name')) {
+          throw new ConflictException(
+            'Project name already exists in this workspace',
+          );
+        }
+      }
+
+      throw error;
+    }
   }
 
   // get all projects
