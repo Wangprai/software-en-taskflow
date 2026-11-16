@@ -155,3 +155,20 @@ export interface ApiError {
   message: string;
   status?: number;
 }
+
+export interface TransferOwnershipDialogProps {
+  slug: string;
+  members: WorkspaceMember[];
+  currentUserId: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export interface LeaveWorkspaceDialogProps {
+  slug: string;
+  members: WorkspaceMember[];
+  currentUserId: string;
+  isOwner: boolean;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}

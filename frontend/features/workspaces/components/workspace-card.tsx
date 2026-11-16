@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { Workspace } from "@/types";
 
-
 export function WorkspaceCard({
   workspace,
   onEdit,

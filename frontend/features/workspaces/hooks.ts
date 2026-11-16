@@ -37,6 +37,42 @@ export function useCreateWorkspace() {
   });
 }
 
+export function useTransferOwnership(slug: string) {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (newOwnerId: string) =>
+      workspacesApi.transferOwnership(slug, newOwnerId),
+
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: queryKeys.workspaces });
+      void qc.invalidateQueries({ queryKey: queryKeys.workspace(slug) });
+      void qc.invalidateQueries({ queryKey: queryKeys.members(slug) });
+      toast.success("Ownership transferred");
+    },
+
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
+
+export function useLeaveWorkspace(slug: string) {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (newOwnerId?: string) =>
+      workspacesApi.leave(slug, newOwnerId),
+
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: queryKeys.workspaces });
+      void qc.invalidateQueries({ queryKey: queryKeys.workspace(slug) });
+      void qc.invalidateQueries({ queryKey: queryKeys.members(slug) });
+      toast.success("You left the workspace");
+    },
+
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
+
 export function useUpdateWorkspace() {
   const qc = useQueryClient();
   return useMutation({

@@ -1,11 +1,23 @@
-import { useMutation, useQuery, useQueryClient, queryOptions } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  queryOptions,
+} from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { membersApi, type AddMemberInput } from "@/features/workspace-members/api";
+import {
+  membersApi,
+  type AddMemberInput,
+} from "@/features/workspace-members/api";
 import { queryKeys } from "@/lib/query-client";
+import { Role } from "@/types";
 
 export const membersQueryOptions = (slug: string) =>
-  queryOptions({ queryKey: queryKeys.members(slug), queryFn: () => membersApi.list(slug) });
+  queryOptions({
+    queryKey: queryKeys.members(slug),
+    queryFn: () => membersApi.list(slug),
+  });
 
 export function useMembers(slug: string) {
   return useQuery(membersQueryOptions(slug));
@@ -20,6 +32,27 @@ export function useAddMember(slug: string) {
       void qc.invalidateQueries({ queryKey: queryKeys.workspaces });
       toast.success("Member added");
     },
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
+
+export function useUpdateMemberRole(slug: string) {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ memberId, role }: { memberId: string; role: Role }) =>
+      membersApi.updateRole(slug, memberId, role),
+
+    onSuccess: () => {
+      void qc.invalidateQueries({
+        queryKey: queryKeys.members(slug),
+      });
+      void qc.invalidateQueries({
+        queryKey: queryKeys.workspaces,
+      });
+      toast.success("Member role updated");
+    },
+
     onError: (e: Error) => toast.error(e.message),
   });
 }
