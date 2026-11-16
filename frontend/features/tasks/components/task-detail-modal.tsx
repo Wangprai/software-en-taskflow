@@ -73,7 +73,16 @@ export function TaskDetailModal({
   const { data: workspace } = useWorkspace(slug);
   const { user } = useAuth();
 
-  const isOwner = workspace?.ownerId === user?.id;
+  const isManager =
+    workspace?.ownerId === user?.id ||
+    workspace?.members?.some(
+      (member) => member.user.id === user?.id && member.role === "ADMIN",
+    );
+
+  const canEditTask =
+    isManager ||
+    task?.createdById === user?.id ||
+    task?.assigneeId === user?.id;
 
   const [title, setTitle] = useState(task?.title ?? "");
   const [description, setDescription] = useState(task?.description ?? "");
@@ -117,6 +126,7 @@ export function TaskDetailModal({
           </div>
           <DialogTitle className="sr-only">{task.title}</DialogTitle>
           <Input
+            disabled={!canEditTask}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             onBlur={() => {
@@ -140,6 +150,7 @@ export function TaskDetailModal({
                 Description
               </h3>
               <Textarea
+                disabled={!canEditTask}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 onBlur={() => {
@@ -176,6 +187,7 @@ export function TaskDetailModal({
           <aside className="space-y-4 md:border-l md:border-border md:pl-5">
             <Field label="Status">
               <Select
+                disabled={!canEditTask}
                 value={task.status}
                 onValueChange={(value) =>
                   patch({ status: value as TaskStatus })
@@ -196,6 +208,7 @@ export function TaskDetailModal({
 
             <Field label="Priority">
               <Select
+                disabled={!canEditTask}
                 value={task.priority}
                 onValueChange={(value) =>
                   patch({ priority: value as TaskPriority })
@@ -216,6 +229,7 @@ export function TaskDetailModal({
 
             <Field label="Assignee">
               <Select
+                disabled={!canEditTask}
                 value={task.assignee?.id ?? "unassigned"}
                 onValueChange={(value) =>
                   patch({ assigneeId: value === "unassigned" ? null : value })
@@ -245,6 +259,7 @@ export function TaskDetailModal({
             <Field label="Due date">
               <div className="space-y-2">
                 <Input
+                  disabled={!canEditTask}
                   type="date"
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
@@ -255,11 +270,7 @@ export function TaskDetailModal({
                   <Button
                     size="sm"
                     className="flex-1"
-                    disabled={
-                      update.isPending ||
-                      dueDate ===
-                        (task.dueDate ? toDateInputValue(task.dueDate) : "")
-                    }
+                    disabled={!canEditTask}
                     onClick={() =>
                       patch({
                         dueDate: dueDate
@@ -275,7 +286,7 @@ export function TaskDetailModal({
                     <Button
                       size="sm"
                       variant="outline"
-                      disabled={update.isPending}
+                      disabled={!canEditTask}
                       onClick={() => {
                         setDueDate("");
                         patch({ dueDate: null });
@@ -290,7 +301,7 @@ export function TaskDetailModal({
 
             <Separator />
 
-            {isOwner && (
+            {isManager && (
               <Button
                 variant="ghost"
                 size="sm"

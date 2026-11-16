@@ -133,7 +133,7 @@ export class ProjectsService {
     currentUserId: string,
   ): Promise<ProjectDetail> {
     const { workspace } =
-      await this.workspaceAccessService.validateWorkspaceOwner(
+      await this.workspaceAccessService.validateWorkspaceManager(
         slug,
         currentUserId,
       );
@@ -197,7 +197,7 @@ export class ProjectsService {
     currentUserId: string,
   ): Promise<ProjectDetail> {
     const { workspace } =
-      await this.workspaceAccessService.validateWorkspaceOwner(
+      await this.workspaceAccessService.validateWorkspaceManager(
         slug,
         currentUserId,
       );

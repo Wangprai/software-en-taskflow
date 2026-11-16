@@ -13,14 +13,8 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { WorkspaceAccessService } from '../workspaces/workspace-access.service';
 import { TaskDetail, TaskList } from './types/task.type';
 import { ActivitiesService } from '../activities/activities.service';
-import {
-  ActivityType,
-  NotificationType,
-  Prisma,
-  TaskStatus,
-} from '@prisma/client';
+import { ActivityType, NotificationType, Prisma } from '@prisma/client';
 import { NotificationsService } from '../notifications/notifications.service';
-import { taskInclude } from './types/task.include';
 
 @Injectable()
 export class TasksService {
@@ -181,8 +175,8 @@ export class TasksService {
     taskId: string,
     dto: UpdateTaskDto,
     currentUserId: string,
-  ) {
-    const { workspace, task } = await this.validateTaskAccess(
+  ): Promise<TaskDetail> {
+    const { workspace, task, canManage } = await this.validateTaskAccess(
       slug,
       projectId,
       taskId,
@@ -191,7 +185,7 @@ export class TasksService {
 
     // Only workspace owner, task creator, or task assignee can update task
     const canUpdate =
-      workspace.ownerId === currentUserId ||
+      canManage ||
       task.createdById === currentUserId ||
       task.assigneeId === currentUserId;
 
@@ -342,15 +336,17 @@ export class TasksService {
     taskId: string,
     currentUserId: string,
   ): Promise<TaskDetail> {
-    const { workspace, task } = await this.validateTaskAccess(
+    const { task, canManage } = await this.validateTaskAccess(
       slug,
       projectId,
       taskId,
       currentUserId,
     );
 
-    if (workspace.ownerId !== currentUserId) {
-      throw new ForbiddenException('Only workspace owner can delete task');
+    if (!canManage) {
+      throw new ForbiddenException(
+        'Only workspace owner or admin can delete task',
+      );
     }
 
     return this.taskRepository.delete(task.id);
@@ -363,7 +359,7 @@ export class TasksService {
     taskId: string,
     currentUserId: string,
   ) {
-    const { workspace, project } = await this.validateProjectAccess(
+    const { workspace, project, canManage } = await this.validateProjectAccess(
       slug,
       projectId,
       currentUserId,
@@ -378,7 +374,7 @@ export class TasksService {
       throw new NotFoundException('Task not found');
     }
 
-    return { workspace, project, task };
+    return { workspace, project, task, canManage };
   }
 
   // Helper function for validate task access
@@ -387,7 +383,7 @@ export class TasksService {
     projectId: string,
     currentUserId: string,
   ) {
-    const { workspace } =
+    const { workspace, canManage } =
       await this.workspaceAccessService.validateWorkspaceAccess(
         slug,
         currentUserId,
@@ -403,6 +399,6 @@ export class TasksService {
       throw new BadRequestException('Project does not belong to workspace');
     }
 
-    return { workspace, project };
+    return { workspace, project, canManage };
   }
 }

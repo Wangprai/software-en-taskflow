@@ -22,12 +22,14 @@ export function KanbanBoard({
   tasks,
   onOpenTask,
   onAddTask,
+  canEditTask,
 }: {
   slug: string;
   projectId: string;
   tasks: Task[];
   onOpenTask: (task: Task) => void;
   onAddTask?: (status: TaskStatus) => void;
+  canEditTask: (task: Task) => boolean;
 }) {
   const move = useMoveTask(slug, projectId);
   const [draggingId, setDraggingId] = useState<string | null>(null);
@@ -41,6 +43,13 @@ export function KanbanBoard({
     setOverTaskId(null);
 
     if (!draggingId || draggingId === targetTask.id) return;
+
+    const draggedTask = tasks.find((t) => t.id === draggingId);
+
+    if (!draggedTask || !canEditTask(draggedTask)) {
+      setDraggingId(null);
+      return;
+    }
 
     const targetItems = tasks
       .filter((t) => t.status === targetTask.status && t.id !== draggingId)
@@ -65,6 +74,13 @@ export function KanbanBoard({
     setOverTaskId(null);
 
     if (!draggingId) return;
+
+    const draggedTask = tasks.find((t) => t.id === draggingId);
+
+    if (!draggedTask || !canEditTask(draggedTask)) {
+      setDraggingId(null);
+      return;
+    }
 
     const targetItems = tasks.filter(
       (t) => t.status === status && t.id !== draggingId,
@@ -121,7 +137,7 @@ export function KanbanBoard({
               {items.map((task) => (
                 <Card
                   key={task.id}
-                  draggable
+                  draggable={canEditTask(task)}
                   role="button"
                   tabIndex={0}
                   onClick={() => onOpenTask(task)}
@@ -132,6 +148,11 @@ export function KanbanBoard({
                     }
                   }}
                   onDragStart={(e) => {
+                    if (!canEditTask(task)) {
+                      e.preventDefault();
+                      return;
+                    }
+
                     e.dataTransfer.effectAllowed = "move";
                     e.dataTransfer.setData("text/plain", task.id);
                     setDraggingId(task.id);

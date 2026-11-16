@@ -22,6 +22,8 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
+import { useWorkspace } from "@/features/workspaces/hooks";
+import { useAuth } from "@/providers/auth-provider";
 
 export default function ProjectBoardPage() {
   const { slug, projectId } = useParams<{
@@ -39,6 +41,22 @@ export default function ProjectBoardPage() {
   const { data: tasks, isLoading } = useTasks(slug, projectId);
   const { data: members } = useMembers(slug);
   const { data: activities } = useProjectActivities(slug, projectId);
+
+  const { data: workspace } = useWorkspace(slug);
+  const { user } = useAuth();
+
+  const isManager =
+    workspace?.ownerId === user?.id ||
+    workspace?.members?.some(
+      (member) => member.user.id === user?.id && member.role === "ADMIN",
+    );
+
+  const canEditTask = (task: Task) =>
+    !!user?.id &&
+    (!!isManager ||
+      task.createdById === user.id ||
+      task.assigneeId === user.id);
+
   const createTask = useCreateTask(slug, projectId);
 
   const [openTaskId, setOpenTaskId] = useState<string | null>(null);
@@ -101,6 +119,7 @@ export default function ProjectBoardPage() {
           tasks={tasks}
           onOpenTask={(task: Task) => setOpenTaskId(task.id)}
           onAddTask={addTask}
+          canEditTask={canEditTask}
         />
       )}
 

@@ -34,6 +34,7 @@ export interface Workspace {
   memberCount: number;
   projectCount: number;
   ownerId: string;
+  members: WorkspaceMember[];
 }
 
 export interface WorkspaceMember {

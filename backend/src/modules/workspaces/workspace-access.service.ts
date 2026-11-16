@@ -7,6 +7,12 @@ import {
 
 import { WorkspaceInterface } from './interfaces/workspace.interface.abstract';
 
+export enum WorkspaceRole {
+  OWNER = 'OWNER',
+  ADMIN = 'ADMIN',
+  MEMBER = 'MEMBER',
+}
+
 @Injectable()
 export class WorkspaceAccessService {
   constructor(
@@ -24,15 +30,24 @@ export class WorkspaceAccessService {
 
     const isOwner = workspace.ownerId === userId;
 
-    const isMember = workspace.members?.some(
+    const member = workspace.members?.find(
       (member) => member.userId === userId,
     );
 
-    if (!isOwner && !isMember) {
+    if (!isOwner && !member) {
       throw new ForbiddenException('Access denied');
     }
 
-    return { workspace, isOwner };
+    const role: WorkspaceRole = isOwner
+      ? WorkspaceRole.OWNER
+      : (member!.role as WorkspaceRole);
+
+    return {
+      workspace,
+      isOwner,
+      role,
+      canManage: role === WorkspaceRole.OWNER || role === WorkspaceRole.ADMIN,
+    };
   }
 
   // Validate workspace owner
@@ -42,6 +57,18 @@ export class WorkspaceAccessService {
     if (!result.isOwner) {
       throw new ForbiddenException(
         'Only workspace owner can perform this action',
+      );
+    }
+
+    return result;
+  }
+
+  async validateWorkspaceManager(slug: string, userId: string) {
+    const result = await this.validateWorkspaceAccess(slug, userId);
+
+    if (!result.canManage) {
+      throw new ForbiddenException(
+        'Only workspace owner or admin can perform this action',
       );
     }
 
