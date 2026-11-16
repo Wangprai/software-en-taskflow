@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ClipboardList, Plus } from "lucide-react";
 import { ActivityTimeline } from "@/features/activities/components/activity-timeline";
 import { KanbanBoard } from "@/features/tasks/components/kanban-board";
@@ -16,13 +16,24 @@ import { useCreateTask, useTasks } from "@/features/tasks/hooks";
 import { useProject } from "@/features/projects/hooks";
 import { useMembers } from "@/features/workspace-members/hooks";
 import type { Task, TaskStatus } from "@/types";
-import { useParams } from "next/navigation";
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 
 export default function ProjectBoardPage() {
   const { slug, projectId } = useParams<{
     slug: string;
     projectId: string;
   }>();
+
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const taskIdFromUrl = searchParams.get("taskId");
 
   const { data: project } = useProject(slug, projectId);
   const { data: tasks, isLoading } = useTasks(slug, projectId);
@@ -43,6 +54,16 @@ export default function ProjectBoardPage() {
     setCreateStatus(status);
     setCreateOpen(true);
   };
+
+  useEffect(() => {
+    if (!taskIdFromUrl || !tasks) return;
+
+    const taskExists = tasks.some((task) => task.id === taskIdFromUrl);
+
+    if (taskExists) {
+      setOpenTaskId(taskIdFromUrl);
+    }
+  }, [taskIdFromUrl, tasks]);
 
   return (
     <div className="space-y-6">
@@ -108,7 +129,21 @@ export default function ProjectBoardPage() {
         projectId={projectId}
         assignees={assignees}
         open={Boolean(activeTask)}
-        onOpenChange={(next) => !next && setOpenTaskId(null)}
+        onOpenChange={(next) => {
+          if (!next) {
+            setOpenTaskId(null);
+
+            const params = new URLSearchParams(searchParams.toString());
+            params.delete("taskId");
+
+            const queryString = params.toString();
+
+            router.replace(
+              queryString ? `${pathname}?${queryString}` : pathname,
+              { scroll: false },
+            );
+          }
+        }}
       />
     </div>
   );

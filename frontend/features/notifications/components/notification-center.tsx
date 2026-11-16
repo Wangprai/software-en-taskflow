@@ -23,6 +23,7 @@ import type { Notification, NotificationType } from "@/types";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { getNotificationTitle } from "../utils/notification-display";
+import { useRouter } from "next/navigation";
 
 export const NOTIFICATION_ICONS: Record<NotificationType, LucideIcon> = {
   TASK_ASSIGNED: UserPlus,
@@ -37,6 +38,27 @@ export function NotificationCenter() {
 
   const items = notifications ?? [];
   const unread = items.filter((n) => !n.read).length;
+
+  const router = useRouter();
+
+  const handleNotificationClick = (item: Notification) => {
+    const navigateToTask = () => {
+      if (item.workspaceSlug && item.projectId && item.taskId) {
+        router.push(
+          `/workspaces/${item.workspaceSlug}/projects/${item.projectId}?taskId=${item.taskId}`,
+        );
+      }
+    };
+
+    if (item.read) {
+      navigateToTask();
+      return;
+    }
+
+    markRead.mutate(item.id, {
+      onSuccess: navigateToTask,
+    });
+  };
 
   return (
     <Popover>
@@ -86,7 +108,7 @@ export function NotificationCenter() {
                 <NotificationRow
                   key={item.id}
                   item={item}
-                  onRead={() => markRead.mutate(item.id)}
+                  onRead={() => handleNotificationClick(item)}
                 />
               ))
           )}
@@ -111,7 +133,7 @@ export function NotificationRow({
 }) {
   const title = getNotificationTitle(item);
   const Icon = NOTIFICATION_ICONS[item.type] ?? Bell;
-  
+
   return (
     <button
       type="button"

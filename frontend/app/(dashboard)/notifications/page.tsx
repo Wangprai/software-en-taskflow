@@ -13,12 +13,39 @@ import {
   useNotifications,
 } from "@/features/notifications/hooks";
 import type { Notification } from "@/types";
+import { useRouter } from "next/navigation";
 
 export default function NotificationsPage() {
   const { data: notifications, isLoading } = useNotifications();
   const markRead = useMarkNotificationRead();
   const markAll = useMarkAllNotificationsRead();
   const items = notifications ?? [];
+
+  const router = useRouter();
+
+  const handleNotificationClick = (id: string) => {
+    const item = items.find((notification) => notification.id === id);
+
+    if (!item) return;
+
+    const navigateToTask = () => {
+      if (item.workspaceSlug && item.projectId && item.taskId) {
+        router.push(
+          `/workspaces/${item.workspaceSlug}/projects/${item.projectId}?taskId=${item.taskId}`,
+        );
+      }
+    };
+
+    if (item.read) {
+      navigateToTask();
+      return;
+    }
+
+    markRead.mutate(id, {
+      onSuccess: navigateToTask,
+    });
+  };
+
   const unread = items.filter((n) => !n.read);
 
   return (
@@ -46,7 +73,7 @@ export default function NotificationsPage() {
           <NotificationList
             items={items}
             isLoading={isLoading}
-            onRead={(id) => markRead.mutate(id)}
+            onRead={handleNotificationClick}
             emptyTitle="No notifications"
             emptyDescription="When teammates mention you or move your tasks, it shows up here."
           />

@@ -127,6 +127,7 @@ export class NotificationRepository implements NotificationInterface {
       body: notification.message,
       taskId: payload.taskId ?? null,
       projectId: payload.projectId ?? null,
+      workspaceSlug: payload.workspaceSlug ?? null,
       actor: notification.user ?? null,
       read: notification.isRead,
       createdAt: notification.createdAt,

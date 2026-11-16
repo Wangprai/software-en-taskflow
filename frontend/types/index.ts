@@ -144,6 +144,7 @@ export interface Notification {
   body: string;
   taskId: string | null;
   projectId: string | null;
+  workspaceSlug: string | null;
   actor: User | null;
   read: boolean;
   createdAt: string;
