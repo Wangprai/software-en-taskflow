@@ -75,6 +75,40 @@ export class WorkspacesService {
     return workspace;
   }
 
+  // Transfer workspace ownership
+  async transferOwnership(
+    slug: string,
+    newOwnerId: string,
+    currentUserId: string,
+    shouldLeave: boolean,
+  ): Promise<WorkspaceDetail> {
+    // Verify that the current user is the workspace owner
+    const { workspace } =
+      await this.workspaceAccessService.validateWorkspaceOwner(
+        slug,
+        currentUserId,
+      );
+
+    // Prevent transferring ownership to yourself
+    if (newOwnerId === currentUserId) {
+      throw new BadRequestException('Cannot transfer ownership to yourself');
+    }
+
+    // Verify that the new owner is already a workspace member
+    await this.workspaceAccessService.validateUserInWorkspace(
+      workspace.id,
+      newOwnerId,
+    );
+
+    // Transfer ownership
+    return this.workspaceRepository.transferOwnership(
+      workspace.id,
+      currentUserId,
+      newOwnerId,
+      shouldLeave,
+    );
+  }
+
   // Update a workspace by ID, ensuring that only the owner can perform this action
   async updateWorkspace(
     id: string,

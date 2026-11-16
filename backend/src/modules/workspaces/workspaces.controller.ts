@@ -18,6 +18,7 @@ import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 import { CurrentUser } from '../../decorators/current-user.decorator';
 import type { AuthUser } from '../auth/interfaces/auth-user.interface';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { TransferOwnershipDto } from './dto/transfer-ownership.dto';
 
 @ApiTags('Workspaces')
 @ApiBearerAuth('access-token')
@@ -49,6 +50,22 @@ export class WorkspacesController {
     @CurrentUser() user: AuthUser,
   ) {
     return this.workspacesService.findWorkspaceBySlug(slug, user.id);
+  }
+
+  // Transfer workspace ownership
+  @HttpCode(HttpStatus.OK)
+  @Patch(':slug/transfer-ownership')
+  async transferOwnership(
+    @Param('slug') slug: string,
+    @Body() dto: TransferOwnershipDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.workspacesService.transferOwnership(
+      slug,
+      dto.newOwnerId,
+      user.id,
+      false,
+    );
   }
 
   // Endpoint to update a workspace by ID

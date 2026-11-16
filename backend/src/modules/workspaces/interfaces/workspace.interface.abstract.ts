@@ -6,7 +6,6 @@ import {
   WorkspaceWithMembers,
 } from '../types/workspace.type';
 
-// Defines an abstract class for workspace interface operations
 export abstract class WorkspaceInterface {
   abstract create(data: Prisma.WorkspaceCreateInput): Promise<WorkspacePayload>;
 
@@ -15,6 +14,13 @@ export abstract class WorkspaceInterface {
   abstract findById(id: string): Promise<WorkspaceWithMembers | null>;
 
   abstract findBySlug(slug: string): Promise<WorkspaceDetail | null>;
+
+  abstract transferOwnership(
+    workspaceId: string,
+    currentOwnerId: string,
+    newOwnerId: string,
+    shouldLeave: boolean,
+  ): Promise<WorkspaceDetail>;
 
   abstract update(
     id: string,

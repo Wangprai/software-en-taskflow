@@ -22,5 +22,10 @@ export abstract class WorkspaceMemberInterface {
     workspaceId: string,
   ): Promise<WorkspaceMemberList>;
 
+  abstract updateRole(
+    id: string,
+    role: MemberRole,
+  ): Promise<WorkspaceMemberWithUser>;
+
   abstract delete(id: string): Promise<WorkspaceMemberWithUser>;
 }

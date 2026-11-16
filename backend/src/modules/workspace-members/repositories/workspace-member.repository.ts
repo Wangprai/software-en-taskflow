@@ -28,7 +28,7 @@ export class WorkspaceMemberRepository implements WorkspaceMemberInterface {
     });
   }
 
-   // Find a member by ID
+  // Find a member by ID
   async findById(id: string): Promise<WorkspaceMemberWithUser | null> {
     return this.prisma.workspaceMember.findUnique({
       where: {
@@ -66,6 +66,18 @@ export class WorkspaceMemberRepository implements WorkspaceMemberInterface {
       orderBy: {
         role: 'asc',
       },
+    });
+  }
+
+  // Update role
+  async updateRole(
+    id: string,
+    role: MemberRole,
+  ): Promise<WorkspaceMemberWithUser> {
+    return this.prisma.workspaceMember.update({
+      where: { id },
+      data: { role },
+      include: workspaceMemberWithUserInclude,
     });
   }
 

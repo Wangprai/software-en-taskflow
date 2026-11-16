@@ -1,6 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+} from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { Prisma } from '@prisma/client';
+import { MemberRole, Prisma } from '@prisma/client';
 import { WorkspaceInterface } from '../interfaces/workspace.interface.abstract';
 import {
   WorkspaceDetail,
@@ -58,6 +62,87 @@ export class WorkspaceRepository implements WorkspaceInterface {
         slug,
       },
       include: workspaceDetailInclude,
+    });
+  }
+
+  // Transfer Workspace Ownership
+  async transferOwnership(
+    workspaceId: string,
+    currentOwnerId: string,
+    newOwnerId: string,
+    shouldLeave: boolean,
+  ): Promise<WorkspaceDetail> {
+    return this.prisma.$transaction(async (tx) => {
+      const workspace = await tx.workspace.findFirst({
+        where: {
+          id: workspaceId,
+          ownerId: currentOwnerId,
+        },
+      });
+
+      if (!workspace) {
+        throw new ConflictException(
+          'Workspace ownership has changed or workspace not found',
+        );
+      }
+
+      const newOwnerMember = await tx.workspaceMember.findUnique({
+        where: {
+          workspaceId_userId: {
+            workspaceId,
+            userId: newOwnerId,
+          },
+        },
+      });
+
+      if (newOwnerId === currentOwnerId) {
+        throw new BadRequestException('Cannot transfer ownership to yourself');
+      }
+
+      if (!newOwnerMember) {
+        throw new BadRequestException(
+          'New owner must be an existing workspace member',
+        );
+      }
+
+      await tx.workspace.update({
+        where: {
+          id: workspaceId,
+        },
+        data: {
+          ownerId: newOwnerId,
+        },
+      });
+
+      const result = shouldLeave
+        ? await tx.workspaceMember.deleteMany({
+            where: {
+              workspaceId,
+              userId: currentOwnerId,
+            },
+          })
+        : await tx.workspaceMember.updateMany({
+            where: {
+              workspaceId,
+              userId: currentOwnerId,
+            },
+            data: {
+              role: MemberRole.MEMBER,
+            },
+          });
+
+      if (result.count !== 1) {
+        throw new ConflictException(
+          'Workspace owner membership is inconsistent',
+        );
+      }
+
+      return tx.workspace.findUniqueOrThrow({
+        where: {
+          id: workspaceId,
+        },
+        include: workspaceDetailInclude,
+      });
     });
   }
 
